@@ -13,9 +13,11 @@ extern "C"{
 #include <stddef.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 #include <vector>
 #include <map>
+#include <set>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979
@@ -23,6 +25,7 @@ extern "C"{
 
 class GraphEdge;
 class Vehicle;
+class Graph;
 
 class GraphVertex{
 public:
@@ -43,30 +46,79 @@ public:
 		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
 	}
 	bool connect(GraphVertex *other);
+	void add(Vehicle *v);
 };
 
 class GraphEdge{
+	typedef std::set<Vehicle*> VehicleSet;
 	GraphVertex *start;
 	GraphVertex *end;
-	std::vector<Vehicle*> vehicles;
+	VehicleSet vehicles;
 	double length;
 public:
 	GraphEdge(GraphVertex *start, GraphVertex *end) : start(start), end(end){
 		length = start->measureDistance(*end);
 	}
+	GraphVertex *getStart()const{return start;}
+	GraphVertex *getEnd()const{return end;}
 	double getLength()const{return length;}
+	void add(Vehicle *v);
+	void remove(Vehicle *v){
+		vehicles.erase(v);
+	}
 };
 
 class Vehicle{
+public:
+	typedef std::set<GraphVertex*> VertexSet;
+	typedef std::vector<GraphVertex*> Path;
+protected:
 	const GraphVertex *dest;
+	GraphEdge *edge;
+	Path path;
+	double pos; ///< [0,1)
 	double velocity;
+	bool findPathInt(Graph *, GraphVertex *root, VertexSet *prevSet, VertexSet &visited);
+public:
+	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){}
+	bool findPath(Graph *, GraphVertex *start);
+	Path &getPath(){return path;}
+	double getPos()const{return pos;}
+	const GraphEdge *getEdge()const{return edge;}
+	void setEdge(GraphEdge *edge){ this->edge = edge; }
+	bool update(double dt){
+		pos += velocity * dt;
+		if(edge->getLength() < pos){
+			pos -= edge->getLength();
+			if(1 < path.size()){
+				GraphVertex *lastVertex = path.back();
+				path.pop_back();
+				GraphVertex::EdgeMap::const_iterator it = lastVertex->getEdges().find(path.back());
+				assert(it != lastVertex->getEdges().end());
+				edge = it->second;
+			}
+			else{
+				edge->remove(this);
+				delete this;
+				return false;
+			}
+		}
+		return true;
+	}
 };
 
 class Graph{
+public:
+	typedef std::set<Vehicle*> VehicleSet;
+protected:
 	std::vector<GraphVertex*> vertices;
+	VehicleSet vehicles;
+	double global_time;
 public:
 	Graph();
 	const std::vector<GraphVertex*> &getVertices()const{return vertices;}
+	const VehicleSet &getVehicles()const{return vehicles;}
+	void update(double dt);
 };
 
 
@@ -84,7 +136,62 @@ bool GraphVertex::connect(GraphVertex *other){
 	return true;
 }
 
-Graph::Graph(){
+void GraphVertex::add(Vehicle *v){
+	Vehicle::Path &path = v->getPath();
+	if(1 < path.size()){
+		edges[path[path.size() - 2]]->add(v);
+		path.pop_back();
+	}
+}
+
+inline void GraphEdge::add(Vehicle *v){
+	v->setEdge(this);
+	vehicles.insert(v);
+}
+
+bool Vehicle::findPath(Graph *g, GraphVertex *start){
+	VertexSet visited;
+	visited.insert(start);
+
+	if(findPathInt(g, start, NULL, visited)){
+		if(path.size() <= 1){
+			path.clear();
+			return false;
+		}
+		path.push_back(start);
+		// Make sure the path is reachable
+		for(int i = 0; i < path.size()-1; i++){
+			const GraphVertex::EdgeMap &edges = path[i+1]->getEdges();
+			assert(edges.find(path[i]) != edges.end());
+		}
+		return true;
+	}
+	else
+		return false;
+}
+
+bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexSet *prevSet, VertexSet &visited){
+	VertexSet levelSet;
+	for(GraphVertex::EdgeMap::const_iterator it2 = start->getEdges().begin(); it2 != start->getEdges().end(); ++it2){
+		if(visited.find(it2->first) != visited.end())
+			continue;
+		visited.insert(it2->first);
+		levelSet.insert(it2->first);
+		if(it2->first == dest){
+			path.push_back(it2->first);
+			return true;
+		}
+	}
+	for(VertexSet::iterator it = levelSet.begin(); it != levelSet.end(); ++it){
+		if(findPathInt(g, *it, NULL, visited)){
+			path.push_back(*it);
+			return true;
+		}
+	}
+	return false;
+}
+
+Graph::Graph() : global_time(0){
 	int n = 100;
 	random_sequence rs;
 	init_rseq(&rs, 342125);
@@ -99,6 +206,37 @@ Graph::Graph(){
 		int s = rseq(&rs) % n, e = rseq(&rs) % n;
 		vertices[s]->connect(vertices[e]);
 	}
+}
+
+void Graph::update(double dt){
+	static int invokes = 0;
+	static random_sequence rs;
+	if(invokes == 0)
+		init_rseq(&rs, 87657444);
+	
+	if(fmod(global_time, 1.) < fmod(global_time - dt, 1.)){
+		int starti = rseq(&rs) % vertices.size();
+		int endi = rseq(&rs) % vertices.size();
+		Vehicle *v = new Vehicle(vertices[endi]);
+		if(v->findPath(this, vertices[starti])){
+			vertices[starti]->add(v);
+			vehicles.insert(v);
+		}
+		else
+			delete v;
+	}
+
+	for(VehicleSet::iterator it = vehicles.begin(); it != vehicles.end();){
+		VehicleSet::iterator next = it;
+		++next;
+		Vehicle *v = *it;
+		if(!v->update(dt))
+			vehicles.erase(it);
+		it = next;
+	}
+
+	invokes++;
+	global_time += dt;
 }
 
 static double gtime = 0.;
@@ -199,6 +337,30 @@ void draw_func(double dt)
 		}
 	}
 
+	glColor4f(0,1,1,1);
+	for(Graph::VehicleSet::const_iterator it2 = graph.getVehicles().begin(); it2 != graph.getVehicles().end(); ++it2){
+		double spos[2];
+		double epos[2];
+		double pos[2];
+		Vehicle *v = *it2;
+		if(v->getPath().back() == v->getEdge()->getStart()){
+			v->getEdge()->getEnd()->getPos(spos);
+			v->getEdge()->getStart()->getPos(epos);
+		}
+		else{
+			v->getEdge()->getStart()->getPos(spos);
+			v->getEdge()->getEnd()->getPos(epos);
+		}
+		for(int i = 0; i < 2; i++)
+			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength();
+		glBegin(GL_LINES);
+		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 - 5);
+		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 + 5);
+		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 + 5);
+		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 - 5);
+		glEnd();
+	}
+
 	glFlush();
 	glutSwapBuffers();
 
@@ -220,13 +382,12 @@ void display_func(void){
 		TimeMeasStart(&tm);
 	}
 	else{
-		int i;
 		double t1;
 		t1 = TimeMeasLap(&tm);
 		dt = init ? t1 - t : 0.;
 
 		if(!pause){
-			// ...
+			graph.update(dt);
 		}
 
 		gtime = t = t1;
