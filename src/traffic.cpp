@@ -55,8 +55,10 @@ class GraphEdge{
 	GraphVertex *end;
 	VehicleSet vehicles;
 	double length;
+	mutable int passCount;
+	static int maxPassCount;
 public:
-	GraphEdge(GraphVertex *start, GraphVertex *end) : start(start), end(end){
+	GraphEdge(GraphVertex *start, GraphVertex *end) : start(start), end(end), passCount(0){
 		length = start->measureDistance(*end);
 	}
 	GraphVertex *getStart()const{return start;}
@@ -66,6 +68,8 @@ public:
 	void remove(Vehicle *v){
 		vehicles.erase(v);
 	}
+	int getPassCount()const{return passCount;}
+	static int getMaxPassCount(){return maxPassCount;}
 };
 
 class Vehicle{
@@ -95,7 +99,9 @@ public:
 				path.pop_back();
 				GraphVertex::EdgeMap::const_iterator it = lastVertex->getEdges().find(path.back());
 				assert(it != lastVertex->getEdges().end());
+				edge->remove(this);
 				edge = it->second;
+				edge->add(this);
 			}
 			else{
 				edge->remove(this);
@@ -144,9 +150,14 @@ void GraphVertex::add(Vehicle *v){
 	}
 }
 
+int GraphEdge::maxPassCount = 0;
+
 inline void GraphEdge::add(Vehicle *v){
 	v->setEdge(this);
 	vehicles.insert(v);
+	passCount++;
+	if(maxPassCount < passCount)
+		maxPassCount = passCount;
 }
 
 bool Vehicle::findPath(Graph *g, GraphVertex *start){
@@ -201,7 +212,7 @@ Graph::Graph() : global_time(0){
 		vertices.push_back(v);
 	}
 
-	int m = n * 3;
+	int m = n * 10;
 	for(int i = 0; i < m; i++){
 		int s = rseq(&rs) % n, e = rseq(&rs) % n;
 		vertices[s]->connect(vertices[e]);
@@ -213,8 +224,9 @@ void Graph::update(double dt){
 	static random_sequence rs;
 	if(invokes == 0)
 		init_rseq(&rs, 87657444);
+	const double genInterval = 0.1;
 	
-	if(fmod(global_time, 1.) < fmod(global_time - dt, 1.)){
+	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)){
 		int starti = rseq(&rs) % vertices.size();
 		int endi = rseq(&rs) % vertices.size();
 		Vehicle *v = new Vehicle(vertices[endi]);
@@ -298,7 +310,7 @@ void draw_func(double dt)
 	glClearDepth(1.);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	glClearColor(0.2, 0.3, 0.4, 0);
+	glClearColor(0.0, 0.2, 0.1, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glLoadIdentity();
@@ -322,17 +334,20 @@ void draw_func(double dt)
 		sprintf(buf, "%d", &*it - &vertices.front());
 		putstring(buf);
 
-		glColor4f(1,0,1,1);
 		for(GraphVertex::EdgeMap::const_iterator it2 = (*it)->getEdges().begin(); it2 != (*it)->getEdges().end(); ++it2){
 			double dpos[2];
+			int passCount = it2->second->getPassCount();
 			it2->first->getPos(dpos);
+
+			glColor4f(GLfloat(passCount) / GraphEdge::getMaxPassCount(),0,1,1);
+
 			glBegin(GL_LINES);
 			glVertex2d(pos[0] * 200, pos[1] * 200);
 			glVertex2d(dpos[0] * 200, dpos[1] * 200);
 			glEnd();
 
 			glRasterPos3d((pos[0] + dpos[0]) / 2. * 200, (pos[1] + dpos[1]) / 2. * 200., 0.);
-			sprintf(buf, "%lg", it2->second->getLength());
+			sprintf(buf, "%d",/* it2->second->getLength(),*/ passCount);
 			putstring(buf);
 		}
 	}
