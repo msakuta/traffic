@@ -76,12 +76,14 @@ class Vehicle{
 public:
 	typedef std::set<GraphVertex*> VertexSet;
 	typedef std::vector<GraphVertex*> Path;
+	static const int stepStatCount = 20;
 protected:
 	const GraphVertex *dest;
 	GraphEdge *edge;
 	Path path;
 	double pos; ///< [0,1)
 	double velocity;
+	static int stepStats[stepStatCount];
 	bool findPathInt(Graph *, GraphVertex *root, VertexSet *prevSet, VertexSet &visited);
 public:
 	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){}
@@ -90,6 +92,7 @@ public:
 	double getPos()const{return pos;}
 	const GraphEdge *getEdge()const{return edge;}
 	void setEdge(GraphEdge *edge){ this->edge = edge; }
+	static const int *getStepStats(){return stepStats;}
 	bool update(double dt){
 		pos += velocity * dt;
 		if(edge->getLength() < pos){
@@ -160,6 +163,9 @@ inline void GraphEdge::add(Vehicle *v){
 		maxPassCount = passCount;
 }
 
+
+int Vehicle::stepStats[Vehicle::stepStatCount] = {0};
+
 bool Vehicle::findPath(Graph *g, GraphVertex *start){
 	VertexSet visited;
 	visited.insert(start);
@@ -175,6 +181,8 @@ bool Vehicle::findPath(Graph *g, GraphVertex *start){
 			const GraphVertex::EdgeMap &edges = path[i+1]->getEdges();
 			assert(edges.find(path[i]) != edges.end());
 		}
+		if(path.size() < 10)
+			stepStats[path.size()]++;
 		return true;
 	}
 	else
@@ -373,6 +381,25 @@ void draw_func(double dt)
 		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 + 5);
 		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 + 5);
 		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 - 5);
+		glEnd();
+	}
+
+
+	// Draw Vehicle's path length distribution chart.
+	glColor4f(1,1,1,1);
+	int maxStepCount = 0;
+	const int *stepStats = Vehicle::getStepStats();
+	for(int i = 0; i < Vehicle::stepStatCount; i++){
+		if(maxStepCount < stepStats[i])
+			maxStepCount = stepStats[i];
+	}
+	if(maxStepCount) for(int i = 0; i < Vehicle::stepStatCount; i++){
+		glRasterPos2d(-200., -180 + i * 16);
+		sprintf(buf, "%d:%d",/* it2->second->getLength(),*/ i, stepStats[i]);
+		putstring(buf);
+		glBegin(GL_LINES);
+		glVertex2d(-200, -180 + i * 16);
+		glVertex2d(-200 + stepStats[i] * 200 / maxStepCount, -180 + i * 16);
 		glEnd();
 	}
 
