@@ -399,19 +399,28 @@ void draw_func(double dt)
 	// Draw Vehicle's path length distribution chart.
 	glColor4f(1,1,1,1);
 	int maxStepCount = 0;
+	int stepSum = 0;
+	int stepMoment = 0;
 	const int *stepStats = Vehicle::getStepStats();
 	for(int i = 0; i < Vehicle::stepStatCount; i++){
 		if(maxStepCount < stepStats[i])
 			maxStepCount = stepStats[i];
+		stepSum += stepStats[i];
+		stepMoment += stepStats[i] * i;
 	}
-	if(maxStepCount) for(int i = 0; i < Vehicle::stepStatCount; i++){
-		glRasterPos2d(-200., -180 + i * 16);
-		sprintf(buf, "%d:%d",/* it2->second->getLength(),*/ i, stepStats[i]);
+	if(maxStepCount){
+		for(int i = 0; i < Vehicle::stepStatCount; i++){
+			glRasterPos2d(-200., -180 + i * 16);
+			sprintf(buf, "%d:%d",/* it2->second->getLength(),*/ i, stepStats[i]);
+			putstring(buf);
+			glBegin(GL_LINES);
+			glVertex2d(-200, -180 + i * 16);
+			glVertex2d(-200 + stepStats[i] * 200 / maxStepCount, -180 + i * 16);
+			glEnd();
+		}
+		glRasterPos2d(-200., -180 + Vehicle::stepStatCount * 16);
+		sprintf(buf, "Avg: %lg", double(stepMoment) / stepSum);
 		putstring(buf);
-		glBegin(GL_LINES);
-		glVertex2d(-200, -180 + i * 16);
-		glVertex2d(-200 + stepStats[i] * 200 / maxStepCount, -180 + i * 16);
-		glEnd();
 	}
 
 	glFlush();
