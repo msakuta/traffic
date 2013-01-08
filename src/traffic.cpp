@@ -85,7 +85,7 @@ protected:
 	double pos; ///< [0,1)
 	double velocity;
 	static int stepStats[stepStatCount];
-	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &prevSet, VertexSet &visited);
+	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &visited);
 public:
 	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){}
 	bool findPath(Graph *, GraphVertex *start);
@@ -173,11 +173,9 @@ bool Vehicle::findPath(Graph *g, GraphVertex *start){
 	visited.insert(start);
 
 	VertexMap first;
-	first[NULL] = start;
-	VertexSet firstSet;
-	firstSet.insert(start);
+	first[start] = NULL;
 
-	if(findPathInt(g, start, first, firstSet, visited)){
+	if(findPathInt(g, start, first, visited)){
 		if(path.size() <= 1){
 			path.clear();
 			return false;
@@ -196,16 +194,14 @@ bool Vehicle::findPath(Graph *g, GraphVertex *start){
 		return false;
 }
 
-bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, VertexSet &prevSet, VertexSet &visited){
+bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, VertexSet &visited){
 	VertexMap levelMap;
-	VertexSet levelSet;
-	for(VertexSet::iterator it = prevSet.begin(); it != prevSet.end(); ++it){
-		GraphVertex *v = *it;
+	for(VertexMap::iterator it = prevMap.begin(); it != prevMap.end(); ++it){
+		GraphVertex *v = it->first;
 		for(GraphVertex::EdgeMap::const_iterator it2 = v->getEdges().begin(); it2 != v->getEdges().end(); ++it2){
 			if(visited.find(it2->first) != visited.end())
 				continue;
 			visited.insert(it2->first);
-			levelSet.insert(it2->first);
 			levelMap[it2->first] = v;
 			if(it2->first == dest){
 				path.push_back(it2->first);
@@ -214,8 +210,8 @@ bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, Vert
 			}
 		}
 	}
-/*	for(VertexSet::iterator it = levelSet.begin(); it != levelSet.end(); ++it)*/ if(!levelMap.empty() && !levelSet.empty()){
-		if(findPathInt(g, start, levelMap, levelSet, visited)){
+	if(!levelMap.empty()){
+		if(findPathInt(g, start, levelMap, visited)){
 			GraphVertex *v = levelMap[path.back()];
 			assert(v);
 			path.push_back(v);
