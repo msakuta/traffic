@@ -75,6 +75,7 @@ public:
 class Vehicle{
 public:
 	typedef std::set<GraphVertex*> VertexSet;
+	typedef std::map<GraphVertex*, GraphVertex*> VertexMap;
 	typedef std::vector<GraphVertex*> Path;
 	static const int stepStatCount = 20;
 protected:
@@ -84,7 +85,7 @@ protected:
 	double pos; ///< [0,1)
 	double velocity;
 	static int stepStats[stepStatCount];
-	bool findPathInt(Graph *, GraphVertex *root, VertexSet *prevSet, VertexSet &visited);
+	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &prevSet, VertexSet &visited);
 public:
 	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){}
 	bool findPath(Graph *, GraphVertex *start);
@@ -166,16 +167,22 @@ inline void GraphEdge::add(Vehicle *v){
 
 int Vehicle::stepStats[Vehicle::stepStatCount] = {0};
 
+
 bool Vehicle::findPath(Graph *g, GraphVertex *start){
 	VertexSet visited;
 	visited.insert(start);
 
-	if(findPathInt(g, start, NULL, visited)){
+	VertexMap first;
+	first[NULL] = start;
+	VertexSet firstSet;
+	firstSet.insert(start);
+
+	if(findPathInt(g, start, first, firstSet, visited)){
 		if(path.size() <= 1){
 			path.clear();
 			return false;
 		}
-		path.push_back(start);
+//		path.push_back(start);
 		// Make sure the path is reachable
 		for(int i = 0; i < path.size()-1; i++){
 			const GraphVertex::EdgeMap &edges = path[i+1]->getEdges();
@@ -189,21 +196,29 @@ bool Vehicle::findPath(Graph *g, GraphVertex *start){
 		return false;
 }
 
-bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexSet *prevSet, VertexSet &visited){
+bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, VertexSet &prevSet, VertexSet &visited){
+	VertexMap levelMap;
 	VertexSet levelSet;
-	for(GraphVertex::EdgeMap::const_iterator it2 = start->getEdges().begin(); it2 != start->getEdges().end(); ++it2){
-		if(visited.find(it2->first) != visited.end())
-			continue;
-		visited.insert(it2->first);
-		levelSet.insert(it2->first);
-		if(it2->first == dest){
-			path.push_back(it2->first);
-			return true;
+	for(VertexSet::iterator it = prevSet.begin(); it != prevSet.end(); ++it){
+		GraphVertex *v = *it;
+		for(GraphVertex::EdgeMap::const_iterator it2 = v->getEdges().begin(); it2 != v->getEdges().end(); ++it2){
+			if(visited.find(it2->first) != visited.end())
+				continue;
+			visited.insert(it2->first);
+			levelSet.insert(it2->first);
+			levelMap[it2->first] = v;
+			if(it2->first == dest){
+				path.push_back(it2->first);
+				path.push_back(v); // We know the path came via v.
+				return true;
+			}
 		}
 	}
-	for(VertexSet::iterator it = levelSet.begin(); it != levelSet.end(); ++it){
-		if(findPathInt(g, *it, NULL, visited)){
-			path.push_back(*it);
+/*	for(VertexSet::iterator it = levelSet.begin(); it != levelSet.end(); ++it)*/ if(!levelMap.empty() && !levelSet.empty()){
+		if(findPathInt(g, start, levelMap, levelSet, visited)){
+			GraphVertex *v = levelMap[path.back()];
+			assert(v);
+			path.push_back(v);
 			return true;
 		}
 	}
