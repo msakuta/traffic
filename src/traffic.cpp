@@ -23,6 +23,13 @@ extern "C"{
 #define M_PI 3.14159265358979
 #endif
 
+#ifndef M_2PI
+#define M_2PI (2. * M_PI)
+#endif
+
+
+static const double vertexRadius = 10.;
+
 class GraphEdge;
 class Vehicle;
 class Graph;
@@ -321,6 +328,13 @@ static void drawindics(double height, const double view_trans[16], double dt){
 	}
 }
 
+static void calcPerp(double perp[2], const double pos[2], const double dpos[2]){
+	perp[0] = pos[1] - dpos[1];
+	perp[1] = -(pos[0] - dpos[0]);
+	double norm = sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
+	perp[0] /= norm;
+	perp[1] /= norm;
+}
 
 /// \brief Callback for drawing
 void draw_func(double dt)
@@ -342,12 +356,13 @@ void draw_func(double dt)
 		double pos[2];
 		(*it)->getPos(pos);
 		glColor4f(1,0,0,1);
+
+		glPushMatrix();
 		glBegin(GL_LINE_LOOP);
-		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 - 5);
-		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 + 5);
-		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 + 5);
-		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 - 5);
+		for(int i = 0; i < 16; i++)
+			glVertex2d(pos[0] * 200 + vertexRadius * cos(i * M_2PI / 16.), pos[1] * 200 + vertexRadius * sin(i * M_2PI / 16.));
 		glEnd();
+		glPopMatrix();
 
 		glRasterPos3d(pos[0] * 200, pos[1] * 200., 0.);
 		sprintf(buf, "%d", &*it - &vertices.front());
@@ -360,9 +375,16 @@ void draw_func(double dt)
 
 			glColor4f(GLfloat(passCount) / GraphEdge::getMaxPassCount(),0,1,1);
 
+			double perp[2];
+			calcPerp(perp, pos, dpos);
+
+			const double size = vertexRadius;
+
 			glBegin(GL_LINES);
 			glVertex2d(pos[0] * 200, pos[1] * 200);
 			glVertex2d(dpos[0] * 200, dpos[1] * 200);
+			glVertex2d(pos[0] * 200 + perp[0] * size, pos[1] * 200 + perp[1] * size);
+			glVertex2d(dpos[0] * 200 + perp[0] * size, dpos[1] * 200 + perp[1] * size);
 			glEnd();
 
 			glRasterPos3d((pos[0] + dpos[0]) / 2. * 200, (pos[1] + dpos[1]) / 2. * 200., 0.);
@@ -385,8 +407,13 @@ void draw_func(double dt)
 			v->getEdge()->getStart()->getPos(spos);
 			v->getEdge()->getEnd()->getPos(epos);
 		}
+
+		double perp[2];
+		calcPerp(perp, spos, epos);
+
 		for(int i = 0; i < 2; i++)
-			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength();
+			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength()
+				+ perp[i] * vertexRadius / 2. / 200.;
 		glBegin(GL_LINES);
 		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 - 5);
 		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 + 5);
