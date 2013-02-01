@@ -28,7 +28,7 @@ extern "C"{
 #endif
 
 
-static const double vertexRadius = 10.;
+static const double vertexRadius = 5.;
 
 class GraphEdge;
 class Vehicle;
@@ -351,6 +351,7 @@ void draw_func(double dt)
 
 	char buf[128];
 
+	// TODO: In this logic, we draw the road (edge) twice.
 	const std::vector<GraphVertex*> &vertices = graph.getVertices();
 	for(std::vector<GraphVertex*>::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
 		double pos[2];
@@ -373,18 +374,29 @@ void draw_func(double dt)
 			int passCount = it2->second->getPassCount();
 			it2->first->getPos(dpos);
 
-			glColor4f(GLfloat(passCount) / GraphEdge::getMaxPassCount(),0,1,1);
-
+			// Obtain vector perpendicular to the edige's direction.
 			double perp[2];
 			calcPerp(perp, pos, dpos);
 
 			const double size = vertexRadius;
 
-			glBegin(GL_LINES);
-			glVertex2d(pos[0] * 200, pos[1] * 200);
-			glVertex2d(dpos[0] * 200, dpos[1] * 200);
+			// Asphalt color
+			glColor4f(0.5, 0.5, 0.5, 0.5);
+			glBegin(GL_QUADS);
+			glVertex2d(pos[0] * 200 - perp[0] * size, pos[1] * 200 - perp[1] * size);
+			glVertex2d(dpos[0] * 200 - perp[0] * size, dpos[1] * 200 - perp[1] * size);
 			glVertex2d(pos[0] * 200 + perp[0] * size, pos[1] * 200 + perp[1] * size);
 			glVertex2d(dpos[0] * 200 + perp[0] * size, dpos[1] * 200 + perp[1] * size);
+			glEnd();
+
+			// The edge color indicates traffic amount
+			glColor4f(GLfloat(passCount) / GraphEdge::getMaxPassCount(),0,1,1);
+
+			glBegin(GL_LINES);
+			for(int k = -1; k <= 1; k++){
+				glVertex2d(pos[0] * 200 + k * perp[0] * size, pos[1] * 200 + k * perp[1] * size);
+				glVertex2d(dpos[0] * 200 + k * perp[0] * size, dpos[1] * 200 + k * perp[1] * size);
+			}
 			glEnd();
 
 			glRasterPos3d((pos[0] + dpos[0]) / 2. * 200, (pos[1] + dpos[1]) / 2. * 200., 0.);
