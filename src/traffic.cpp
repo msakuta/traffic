@@ -328,12 +328,23 @@ static void drawindics(double height, const double view_trans[16], double dt){
 	}
 }
 
-static void calcPerp(double perp[2], const double pos[2], const double dpos[2]){
+/// \brief Calculates parallel and perpendicular unit vectors against difference of given vectors.
+/// \param para Buffer for returning vector parallel to difference of pos and dpos and have a unit length
+/// \param perp Buffer for returning vector perpendicular to para and have a unit length
+/// \param pos Input vector for the starting point
+/// \param dpos Input vector for the destination point
+/// \returns Distance of the given vectors
+static double calcPerp(double para[2], double perp[2], const double pos[2], const double dpos[2]){
 	perp[0] = pos[1] - dpos[1];
 	perp[1] = -(pos[0] - dpos[0]);
 	double norm = sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
 	perp[0] /= norm;
 	perp[1] /= norm;
+	if(para){
+		para[0] = -(pos[0] - dpos[0]) / norm;
+		para[1] = -(pos[1] - dpos[1]) / norm;
+	}
+	return norm;
 }
 
 /// \brief Callback for drawing
@@ -375,19 +386,35 @@ void draw_func(double dt)
 			it2->first->getPos(dpos);
 
 			// Obtain vector perpendicular to the edige's direction.
-			double perp[2];
-			calcPerp(perp, pos, dpos);
+			double para[2], perp[2];
+			const double length = calcPerp(para, perp, pos, dpos);
+			const double dashedLineLength = 0.07;
+			const double lineHalfWidth = 0.003;
+			const int dashedLines = int(length / dashedLineLength + 0.5);
 
 			const double size = vertexRadius;
 
-			// Asphalt color
-			glColor4f(0.5, 0.5, 0.5, 0.5);
 			glBegin(GL_QUADS);
+			// Asphalt color
+			glColor4f(0.5, 0.5, 0.5, 1);
 			glVertex2d(pos[0] * 200 - perp[0] * size, pos[1] * 200 - perp[1] * size);
 			glVertex2d(dpos[0] * 200 - perp[0] * size, dpos[1] * 200 - perp[1] * size);
 			glVertex2d(pos[0] * 200 + perp[0] * size, pos[1] * 200 + perp[1] * size);
 			glVertex2d(dpos[0] * 200 + perp[0] * size, dpos[1] * 200 + perp[1] * size);
 			glEnd();
+
+			glPushMatrix();
+			glScaled(200, 200, 1);
+			glColor4f(1, 1, 1, 1);
+			glBegin(GL_QUADS);
+			for(int j = 0; j < dashedLines; j++){
+				glVertex2d(pos[0] + para[0] * j * dashedLineLength + perp[0] * lineHalfWidth, pos[1] + para[1] * j * dashedLineLength + perp[1] * lineHalfWidth);
+				glVertex2d(pos[0] + para[0] * j * dashedLineLength - perp[0] * lineHalfWidth, pos[1] + para[1] * j * dashedLineLength - perp[1] * lineHalfWidth);
+				glVertex2d(pos[0] + para[0] * (j + 0.5) * dashedLineLength - perp[0] * lineHalfWidth, pos[1] + para[1] * (j + 0.5) * dashedLineLength - perp[1] * lineHalfWidth);
+				glVertex2d(pos[0] + para[0] * (j + 0.5) * dashedLineLength + perp[0] * lineHalfWidth, pos[1] + para[1] * (j + 0.5) * dashedLineLength + perp[1] * lineHalfWidth);
+			}
+			glEnd();
+			glPopMatrix();
 
 			// The edge color indicates traffic amount
 			glColor4f(GLfloat(passCount) / GraphEdge::getMaxPassCount(),0,1,1);
@@ -421,7 +448,7 @@ void draw_func(double dt)
 		}
 
 		double perp[2];
-		calcPerp(perp, spos, epos);
+		calcPerp(NULL, perp, spos, epos);
 
 		for(int i = 0; i < 2; i++)
 			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength()
