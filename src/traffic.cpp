@@ -414,12 +414,18 @@ void draw_func(double dt)
 		for(int i = 0; i < 2; i++)
 			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength()
 				+ perp[i] * vertexRadius / 2. / 200.;
-		glBegin(GL_LINES);
-		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 - 5);
-		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 + 5);
-		glVertex2d(pos[0] * 200 - 5, pos[1] * 200 + 5);
-		glVertex2d(pos[0] * 200 + 5, pos[1] * 200 - 5);
+		glPushMatrix();
+		glTranslated(pos[0] * 200, pos[1] * 200, 0);
+		double angle = atan2((spos[1] - epos[1]), spos[0] - epos[0]);
+		glRotated(angle * 360 / M_2PI, 0, 0, 1);
+		glBegin(GL_QUADS);
+		glVertex2d(-5, -2);
+		glVertex2d(-5,  2);
+		glVertex2d( 5,  2.5);
+		glVertex2d( 5, -2.5);
 		glEnd();
+		glPopMatrix();
+
 	}
 
 
