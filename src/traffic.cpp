@@ -14,6 +14,7 @@ extern "C"{
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <vector>
 #include <map>
@@ -91,10 +92,14 @@ protected:
 	Path path;
 	double pos; ///< [0,1)
 	double velocity;
+	GLfloat color[3];
 	static int stepStats[stepStatCount];
 	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &visited);
 public:
-	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){}
+	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){
+		for(int i = 0; i < 3; i++)
+			color[i] = (GLfloat)rand() / RAND_MAX;
+	}
 	bool findPath(Graph *, GraphVertex *start);
 	Path &getPath(){return path;}
 	double getPos()const{return pos;}
@@ -122,6 +127,7 @@ public:
 		}
 		return true;
 	}
+	void draw();
 };
 
 class Graph{
@@ -138,6 +144,7 @@ public:
 	void update(double dt);
 };
 
+static double calcPerp(double para[2], double perp[2], const double pos[2], const double dpos[2]);
 
 bool GraphVertex::connect(GraphVertex *other){
 	EdgeMap::iterator it = edges.find(other);
@@ -226,6 +233,45 @@ bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, Vert
 		}
 	}
 	return false;
+}
+
+void Vehicle::draw(){
+	double spos[2];
+	double epos[2];
+	double pos[2];
+	if(getPath().back() == getEdge()->getStart()){
+		getEdge()->getEnd()->getPos(spos);
+		getEdge()->getStart()->getPos(epos);
+	}
+	else{
+		getEdge()->getStart()->getPos(spos);
+		getEdge()->getEnd()->getPos(epos);
+	}
+
+	double perp[2];
+	calcPerp(NULL, perp, spos, epos);
+
+	for(int i = 0; i < 2; i++)
+		pos[i] = epos[i] * getPos() / getEdge()->getLength() + spos[i] * (getEdge()->getLength() - getPos()) / getEdge()->getLength()
+			+ perp[i] * vertexRadius / 2. / 200.;
+	glPushMatrix();
+	glTranslated(pos[0] * 200, pos[1] * 200, 0);
+	double angle = atan2((spos[1] - epos[1]), spos[0] - epos[0]);
+	glRotated(angle * 360 / M_2PI, 0, 0, 1);
+	for(int i = 0; i < 2; i++){
+		if(i == 0)
+			glColor3fv(color);
+		else
+			glColor4f(0,0,0,1);
+		glBegin(i == 0 ? GL_QUADS : GL_LINE_LOOP);
+		glVertex2d(-5, -2);
+		glVertex2d(-5,  2);
+		glVertex2d( 5,  2.5);
+		glVertex2d( 5, -2.5);
+		glEnd();
+	}
+	glPopMatrix();
+
 }
 
 Graph::Graph() : global_time(0){
@@ -434,37 +480,8 @@ void draw_func(double dt)
 
 	glColor4f(0,1,1,1);
 	for(Graph::VehicleSet::const_iterator it2 = graph.getVehicles().begin(); it2 != graph.getVehicles().end(); ++it2){
-		double spos[2];
-		double epos[2];
-		double pos[2];
 		Vehicle *v = *it2;
-		if(v->getPath().back() == v->getEdge()->getStart()){
-			v->getEdge()->getEnd()->getPos(spos);
-			v->getEdge()->getStart()->getPos(epos);
-		}
-		else{
-			v->getEdge()->getStart()->getPos(spos);
-			v->getEdge()->getEnd()->getPos(epos);
-		}
-
-		double perp[2];
-		calcPerp(NULL, perp, spos, epos);
-
-		for(int i = 0; i < 2; i++)
-			pos[i] = epos[i] * v->getPos() / v->getEdge()->getLength() + spos[i] * (v->getEdge()->getLength() - v->getPos()) / v->getEdge()->getLength()
-				+ perp[i] * vertexRadius / 2. / 200.;
-		glPushMatrix();
-		glTranslated(pos[0] * 200, pos[1] * 200, 0);
-		double angle = atan2((spos[1] - epos[1]), spos[0] - epos[0]);
-		glRotated(angle * 360 / M_2PI, 0, 0, 1);
-		glBegin(GL_QUADS);
-		glVertex2d(-5, -2);
-		glVertex2d(-5,  2);
-		glVertex2d( 5,  2.5);
-		glVertex2d( 5, -2.5);
-		glEnd();
-		glPopMatrix();
-
+		v->draw();
 	}
 
 
