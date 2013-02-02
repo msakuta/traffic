@@ -4,6 +4,7 @@
 
 #include "Vehicle.h"
 #include "GraphVertex.h"
+#include "GraphEdge.h"
 
 #include <GL/glut.h>
 #include <GL/gl.h>

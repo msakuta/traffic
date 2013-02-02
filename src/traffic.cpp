@@ -3,6 +3,7 @@
  */
 
 #include "GraphVertex.h"
+#include "GraphEdge.h"
 #include "Vehicle.h"
 
 #include <GL/glut.h>
@@ -32,8 +33,6 @@ extern "C"{
 #endif
 
 
-const double vertexRadius = 5.;
-
 class GraphEdge;
 class Vehicle;
 class Graph;
@@ -53,39 +52,6 @@ public:
 	const VehicleSet &getVehicles()const{return vehicles;}
 	void update(double dt);
 };
-
-
-bool GraphVertex::connect(GraphVertex *other){
-	EdgeMap::iterator it = edges.find(other);
-	if(it != edges.end())
-		return false; // Already added
-
-	double length = measureDistance(*other);
-	if(0.6 < length)
-		return false; // Avoid adding long edges
-	GraphEdge *e = new GraphEdge(this, other);
-	edges[other] = e;
-	other->edges[this] = e;
-	return true;
-}
-
-void GraphVertex::add(Vehicle *v){
-	Vehicle::Path &path = v->getPath();
-	if(1 < path.size()){
-		edges[path[path.size() - 2]]->add(v);
-		path.pop_back();
-	}
-}
-
-int GraphEdge::maxPassCount = 0;
-
-inline void GraphEdge::add(Vehicle *v){
-	v->setEdge(this);
-	vehicles.insert(v);
-	passCount++;
-	if(maxPassCount < passCount)
-		maxPassCount = passCount;
-}
 
 
 
