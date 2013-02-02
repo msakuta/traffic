@@ -197,11 +197,23 @@
 				RelativePath=".\src\traffic.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\src\Vehicle.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Headers"
 			Filter="h;hpp;hxx;hm;inl;inc"
 			>
+			<File
+				RelativePath=".\src\GraphVertex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Vehicle.h"
+				>
+			</File>
 			<Filter
 				Name="clib"
 				>

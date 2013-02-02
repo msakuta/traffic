@@ -2,6 +2,9 @@
  * \brief The simple traffic simulator
  */
 
+#include "GraphVertex.h"
+#include "Vehicle.h"
+
 #include <GL/glut.h>
 #include <GL/gl.h>
 #define exit something_meanless
@@ -29,106 +32,13 @@ extern "C"{
 #endif
 
 
-static const double vertexRadius = 5.;
+const double vertexRadius = 5.;
 
 class GraphEdge;
 class Vehicle;
 class Graph;
 
-class GraphVertex{
-public:
-	typedef std::map<GraphVertex*, GraphEdge*> EdgeMap;
-protected:
-	std::map<GraphVertex*, GraphEdge*> edges;
-	double pos[2];
-public:
-	GraphVertex(double x, double y){
-		pos[0] = x, pos[1] = y;
-	}
-	void getPos(double pos[2])const{pos[0] = this->pos[0]; pos[1] = this->pos[1];}
-	const EdgeMap &getEdges()const{return edges;}
-	double measureDistance(const GraphVertex &other)const{
-		double startPos[2], endPos[2];
-		this->getPos(startPos);
-		other.getPos(endPos);
-		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
-	}
-	bool connect(GraphVertex *other);
-	void add(Vehicle *v);
-};
 
-class GraphEdge{
-	typedef std::set<Vehicle*> VehicleSet;
-	GraphVertex *start;
-	GraphVertex *end;
-	VehicleSet vehicles;
-	double length;
-	mutable int passCount;
-	static int maxPassCount;
-public:
-	GraphEdge(GraphVertex *start, GraphVertex *end) : start(start), end(end), passCount(0){
-		length = start->measureDistance(*end);
-	}
-	GraphVertex *getStart()const{return start;}
-	GraphVertex *getEnd()const{return end;}
-	double getLength()const{return length;}
-	void add(Vehicle *v);
-	void remove(Vehicle *v){
-		vehicles.erase(v);
-	}
-	int getPassCount()const{return passCount;}
-	static int getMaxPassCount(){return maxPassCount;}
-};
-
-class Vehicle{
-public:
-	typedef std::set<GraphVertex*> VertexSet;
-	typedef std::map<GraphVertex*, GraphVertex*> VertexMap;
-	typedef std::vector<GraphVertex*> Path;
-	static const int stepStatCount = 20;
-protected:
-	const GraphVertex *dest;
-	GraphEdge *edge;
-	Path path;
-	double pos; ///< [0,1)
-	double velocity;
-	GLfloat color[3];
-	static int stepStats[stepStatCount];
-	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &visited);
-public:
-	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){
-		for(int i = 0; i < 3; i++)
-			color[i] = (GLfloat)rand() / RAND_MAX;
-	}
-	bool findPath(Graph *, GraphVertex *start);
-	Path &getPath(){return path;}
-	double getPos()const{return pos;}
-	const GraphEdge *getEdge()const{return edge;}
-	void setEdge(GraphEdge *edge){ this->edge = edge; }
-	static const int *getStepStats(){return stepStats;}
-	bool update(double dt){
-		pos += velocity * dt;
-		if(edge->getLength() < pos){
-			pos -= edge->getLength();
-			if(1 < path.size()){
-				GraphVertex *lastVertex = path.back();
-				path.pop_back();
-				GraphVertex::EdgeMap::const_iterator it = lastVertex->getEdges().find(path.back());
-				assert(it != lastVertex->getEdges().end());
-				edge->remove(this);
-				edge = it->second;
-				edge->add(this);
-			}
-			else{
-				edge->remove(this);
-				delete this;
-				return false;
-			}
-		}
-		return true;
-	}
-	void draw();
-};
 
 class Graph{
 public:
@@ -144,7 +54,6 @@ public:
 	void update(double dt);
 };
 
-static double calcPerp(double para[2], double perp[2], const double pos[2], const double dpos[2]);
 
 bool GraphVertex::connect(GraphVertex *other){
 	EdgeMap::iterator it = edges.find(other);
@@ -179,100 +88,6 @@ inline void GraphEdge::add(Vehicle *v){
 }
 
 
-int Vehicle::stepStats[Vehicle::stepStatCount] = {0};
-
-
-bool Vehicle::findPath(Graph *g, GraphVertex *start){
-	VertexSet visited;
-	visited.insert(start);
-
-	VertexMap first;
-	first[start] = NULL;
-
-	if(findPathInt(g, start, first, visited)){
-		if(path.size() <= 1){
-			path.clear();
-			return false;
-		}
-//		path.push_back(start);
-		// Make sure the path is reachable
-		for(int i = 0; i < path.size()-1; i++){
-			const GraphVertex::EdgeMap &edges = path[i+1]->getEdges();
-			assert(edges.find(path[i]) != edges.end());
-		}
-		if(path.size() < 10)
-			stepStats[path.size()]++;
-		return true;
-	}
-	else
-		return false;
-}
-
-bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, VertexSet &visited){
-	VertexMap levelMap;
-	for(VertexMap::iterator it = prevMap.begin(); it != prevMap.end(); ++it){
-		GraphVertex *v = it->first;
-		for(GraphVertex::EdgeMap::const_iterator it2 = v->getEdges().begin(); it2 != v->getEdges().end(); ++it2){
-			if(visited.find(it2->first) != visited.end())
-				continue;
-			visited.insert(it2->first);
-			levelMap[it2->first] = v;
-			if(it2->first == dest){
-				path.push_back(it2->first);
-				path.push_back(v); // We know the path came via v.
-				return true;
-			}
-		}
-	}
-	if(!levelMap.empty()){
-		if(findPathInt(g, start, levelMap, visited)){
-			GraphVertex *v = levelMap[path.back()];
-			assert(v);
-			path.push_back(v);
-			return true;
-		}
-	}
-	return false;
-}
-
-void Vehicle::draw(){
-	double spos[2];
-	double epos[2];
-	double pos[2];
-	if(getPath().back() == getEdge()->getStart()){
-		getEdge()->getEnd()->getPos(spos);
-		getEdge()->getStart()->getPos(epos);
-	}
-	else{
-		getEdge()->getStart()->getPos(spos);
-		getEdge()->getEnd()->getPos(epos);
-	}
-
-	double perp[2];
-	calcPerp(NULL, perp, spos, epos);
-
-	for(int i = 0; i < 2; i++)
-		pos[i] = epos[i] * getPos() / getEdge()->getLength() + spos[i] * (getEdge()->getLength() - getPos()) / getEdge()->getLength()
-			+ perp[i] * vertexRadius / 2. / 200.;
-	glPushMatrix();
-	glTranslated(pos[0] * 200, pos[1] * 200, 0);
-	double angle = atan2((spos[1] - epos[1]), spos[0] - epos[0]);
-	glRotated(angle * 360 / M_2PI, 0, 0, 1);
-	for(int i = 0; i < 2; i++){
-		if(i == 0)
-			glColor3fv(color);
-		else
-			glColor4f(0,0,0,1);
-		glBegin(i == 0 ? GL_QUADS : GL_LINE_LOOP);
-		glVertex2d(-5, -2);
-		glVertex2d(-5,  2);
-		glVertex2d( 5,  2.5);
-		glVertex2d( 5, -2.5);
-		glEnd();
-	}
-	glPopMatrix();
-
-}
 
 Graph::Graph() : global_time(0){
 	int n = 100;
@@ -380,7 +195,7 @@ static void drawindics(double height, const double view_trans[16], double dt){
 /// \param pos Input vector for the starting point
 /// \param dpos Input vector for the destination point
 /// \returns Distance of the given vectors
-static double calcPerp(double para[2], double perp[2], const double pos[2], const double dpos[2]){
+double calcPerp(double para[2], double perp[2], const double pos[2], const double dpos[2]){
 	perp[0] = pos[1] - dpos[1];
 	perp[1] = -(pos[0] - dpos[0]);
 	double norm = sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
