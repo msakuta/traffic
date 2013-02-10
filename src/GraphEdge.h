@@ -10,7 +10,9 @@
 class Vehicle;
 
 class GraphEdge{
+public:
 	typedef std::set<Vehicle*> VehicleSet;
+protected:
 	GraphVertex *start;
 	GraphVertex *end;
 	VehicleSet vehicles;
@@ -24,6 +26,7 @@ public:
 	GraphVertex *getStart()const{return start;}
 	GraphVertex *getEnd()const{return end;}
 	double getLength()const{return length;}
+	const VehicleSet &getVehicles()const{return vehicles;}
 	void add(Vehicle *v);
 	void remove(Vehicle *v){
 		vehicles.erase(v);

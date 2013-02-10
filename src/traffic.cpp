@@ -56,7 +56,7 @@ public:
 
 
 Graph::Graph() : global_time(0){
-	int n = 100;
+	int n = 50;
 	random_sequence rs;
 	init_rseq(&rs, 342125);
 	for(int i = 0; i < n; i++){

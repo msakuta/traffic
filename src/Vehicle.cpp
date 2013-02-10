@@ -89,8 +89,43 @@ bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, Vert
 	return false;
 }
 
+bool Vehicle::checkTraffic(GraphEdge *edge, double pos){
+	static const double vehicleInterval = 0.07;
+	const GraphEdge::VehicleSet &vehicles =  edge->getVehicles();
+	bool jammed = false;
+	for(GraphEdge::VehicleSet::const_iterator it = vehicles.begin(); it != vehicles.end(); ++it){
+		Vehicle *v = *it;
+		// If we are going on opposite direction, ignore it
+		if(v->velocity * this->velocity < 0)
+			continue;
+		if(0 < this->velocity){
+			if(this->pos < v->pos && v->pos < this->pos + vehicleInterval){
+				jammed = true;
+				break;
+			}
+		}
+		else if(this->pos - vehicleInterval < v->pos && v->pos < this->pos){
+			jammed = true;
+			break;
+		}
+	}
+	return jammed;
+}
+
 bool Vehicle::update(double dt){
-	pos += velocity * dt;
+	do{
+		if(checkTraffic(edge, pos))
+			break;
+		if(edge->getLength() < pos + velocity * dt && 1 < path.size()){
+			GraphVertex::EdgeMap &edges = const_cast<GraphVertex::EdgeMap&>(path.back()->getEdges());
+			GraphVertex *next = *(path.rbegin()+1);
+			GraphVertex::EdgeMap::iterator it = edges.find(next);
+			assert(it != edges.end());
+			if(checkTraffic(it->second, pos - edge->getLength()))
+				break;
+		}
+		pos += velocity * dt;
+	} while(0);
 	if(edge->getLength() < pos){
 		pos -= edge->getLength();
 		if(1 < path.size()){

@@ -34,6 +34,7 @@ protected:
 	GLfloat color[3];
 	static int stepStats[stepStatCount];
 	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &visited);
+	bool checkTraffic(GraphEdge *, double pos);
 public:
 	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){
 		for(int i = 0; i < 3; i++)
