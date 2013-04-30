@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Verlet Shapes</title>
+	<meta charset="UTF-8" />
+</head>
+<body>
+	<div id="header">
+		<h1>Traffic Test</h1>
+	</div>
+	<canvas id="scratch" width="400px" height="400px" style="width: 400px; height: 400px;"></canvas>
+	<div id="timeText"/>
+	<script type="text/javascript">
+var canvas;
+var width;
+var height;
+
+function GraphVertex(x,y){
+	this.x = x;
+	this.y = y;
+	this.edges = new Array();
+}
+
+GraphVertex.prototype.print = function(){
+	return "(" + this.x + ", " + this.y + ")";
+}
+
+GraphVertex.prototype.measureDistance = function(other){
+	return Math.sqrt((this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y));
+}
+
+GraphVertex.prototype.connect = function(other){
+//	EdgeMap::iterator it = edges.find(other);
+//	if(it != edges.end())
+//		return false; // Already added
+
+	var length = this.measureDistance(other);
+	if(60.0 < length)
+		return false; // Avoid adding long edges
+	var e = new GraphEdge(this, other);
+	this.edges.push(e);
+	other.edges.push(e);
+	return true;
+}
+
+function GraphEdge(start, end){
+	this.start = start;
+	this.end = end;
+	this.passCount = 0;
+	this.length = start.measureDistance(end);
+}
+
+function Graph(width, height){
+	var n = 100;
+	this.vertices = new Array(n);
+	for(var i = 0; i < n; i++)
+		this.vertices[i] = new GraphVertex(Math.random() * width, Math.random() * height);
+	var m = n * 10;
+	for(var i = 0; i < m; i++){
+		var s = Math.floor(Math.random() * (n-1)), e = Math.floor(Math.random() * (n-1));
+		this.vertices[s].connect(this.vertices[e]);
+	}
+}
+
+var graph;
+
+window.onload = function() {
+	canvas = document.getElementById("scratch");
+	if ( ! canvas || ! canvas.getContext ) {
+		return false;
+	}
+	width = parseInt(canvas.style.width);
+	height = parseInt(canvas.style.height);
+	graph = new Graph(width, height);
+
+	var loop = function() {
+		draw();
+		var timer = setTimeout(loop,100);
+	};
+
+	loop();
+};
+
+function clockModel(ctx,col){
+	ctx.fillStyle = "#000";
+	ctx.beginPath();
+	ctx.moveTo(0.025, 0.2);
+	ctx.lineTo(0.05, 0.);
+	ctx.lineTo(0.025, -1);
+	ctx.lineTo(-0.025, -1);
+	ctx.lineTo(-0.05, 0.);
+	ctx.lineTo(-0.025, 0.2);
+	ctx.closePath();
+	ctx.fill();
+}
+
+function resetTrans(ctx){
+	ctx.setTransform(1,0,0,1,200,200);
+}
+
+function draw() {
+	var ctx = canvas.getContext('2d');
+	ctx.clearRect(0,0,width,height);
+
+	ctx.font = "bold 24px Helvetica";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+
+	ctx.fillStyle = "#000";
+	ctx.setTransform(1,0,0,1,0,0);
+	for(var i = 0; i < graph.vertices.length; i++){
+		var v = graph.vertices[i];
+		ctx.beginPath();
+		ctx.arc(v.x, v.y, 10, 0, Math.PI*2, false);
+		ctx.stroke();
+		ctx.strokeText(v.edges.length, v.x, v.y);
+		for(var j = 0; j < v.edges.length; j++){
+			var e = v.edges[j];
+			ctx.beginPath();
+			ctx.moveTo(e.start.x, e.start.y);
+			ctx.lineTo(e.end.x, e.end.y);
+			ctx.stroke();
+		}
+	}
+
+}
+	</script>
+</body>
+</html>
