@@ -51,7 +51,7 @@ bool Vehicle::findPath(Graph *g, GraphVertex *start){
 //		path.push_back(start);
 		// Make sure the path is reachable
 		for(int i = 0; i < path.size()-1; i++){
-			const GraphVertex::EdgeMap &edges = path[i+1]->getEdges();
+			auto edges = path[i+1]->getEdges();
 			assert(edges.find(path[i]) != edges.end());
 		}
 		if(path.size() < 10)
@@ -96,7 +96,7 @@ bool Vehicle::update(double dt){
 		if(1 < path.size()){
 			GraphVertex *lastVertex = path.back();
 			path.pop_back();
-			GraphVertex::EdgeMap::const_iterator it = lastVertex->getEdges().find(path.back());
+			auto it = lastVertex->getEdges().find(path.back());
 			assert(it != lastVertex->getEdges().end());
 			edge->remove(this);
 			edge = it->second;
