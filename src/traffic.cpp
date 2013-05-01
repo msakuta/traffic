@@ -5,12 +5,12 @@
 #include "GraphVertex.h"
 #include "GraphEdge.h"
 #include "Vehicle.h"
+#include "Graph.h"
 
 #include <GL/glut.h>
 #include <GL/gl.h>
 #define exit something_meanless
 extern "C"{
-#include <clib/rseq.h>
 #include <clib/timemeas.h>
 }
 
@@ -39,70 +39,8 @@ class Graph;
 
 
 
-class Graph{
-public:
-	typedef std::set<Vehicle*> VehicleSet;
-protected:
-	std::vector<GraphVertex*> vertices;
-	VehicleSet vehicles;
-	double global_time;
-public:
-	Graph();
-	const std::vector<GraphVertex*> &getVertices()const{return vertices;}
-	const VehicleSet &getVehicles()const{return vehicles;}
-	void update(double dt);
-};
 
 
-
-Graph::Graph() : global_time(0){
-	int n = 50;
-	random_sequence rs;
-	init_rseq(&rs, 342125);
-	for(int i = 0; i < n; i++){
-		double x = drseq(&rs) * 2 - 1, y = drseq(&rs) * 2 - 1;
-		GraphVertex *v = new GraphVertex(x, y);
-		vertices.push_back(v);
-	}
-
-	int m = n * 10;
-	for(int i = 0; i < m; i++){
-		int s = rseq(&rs) % n, e = rseq(&rs) % n;
-		vertices[s]->connect(vertices[e]);
-	}
-}
-
-void Graph::update(double dt){
-	static int invokes = 0;
-	static random_sequence rs;
-	if(invokes == 0)
-		init_rseq(&rs, 87657444);
-	const double genInterval = 0.1;
-	
-	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)){
-		int starti = rseq(&rs) % vertices.size();
-		int endi = rseq(&rs) % vertices.size();
-		Vehicle *v = new Vehicle(vertices[endi]);
-		if(v->findPath(this, vertices[starti])){
-			vertices[starti]->add(v);
-			vehicles.insert(v);
-		}
-		else
-			delete v;
-	}
-
-	for(VehicleSet::iterator it = vehicles.begin(); it != vehicles.end();){
-		VehicleSet::iterator next = it;
-		++next;
-		Vehicle *v = *it;
-		if(!v->update(dt))
-			vehicles.erase(it);
-		it = next;
-	}
-
-	invokes++;
-	global_time += dt;
-}
 
 static double gtime = 0.;
 static int rollview = 0;
