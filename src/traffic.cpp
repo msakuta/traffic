@@ -5,12 +5,12 @@
 #include "GraphVertex.h"
 #include "GraphEdge.h"
 #include "Vehicle.h"
+#include "Graph.h"
 
 #include <GL/glut.h>
 #include <GL/gl.h>
 #define exit something_meanless
 extern "C"{
-#include <clib/rseq.h>
 #include <clib/timemeas.h>
 }
 
@@ -39,70 +39,8 @@ class Graph;
 
 
 
-class Graph{
-public:
-	typedef std::set<Vehicle*> VehicleSet;
-protected:
-	std::vector<GraphVertex*> vertices;
-	VehicleSet vehicles;
-	double global_time;
-public:
-	Graph();
-	const std::vector<GraphVertex*> &getVertices()const{return vertices;}
-	const VehicleSet &getVehicles()const{return vehicles;}
-	void update(double dt);
-};
 
 
-
-Graph::Graph() : global_time(0){
-	int n = 100;
-	random_sequence rs;
-	init_rseq(&rs, 342125);
-	for(int i = 0; i < n; i++){
-		double x = drseq(&rs) * 2 - 1, y = drseq(&rs) * 2 - 1;
-		GraphVertex *v = new GraphVertex(x, y);
-		vertices.push_back(v);
-	}
-
-	int m = n * 10;
-	for(int i = 0; i < m; i++){
-		int s = rseq(&rs) % n, e = rseq(&rs) % n;
-		vertices[s]->connect(vertices[e]);
-	}
-}
-
-void Graph::update(double dt){
-	static int invokes = 0;
-	static random_sequence rs;
-	if(invokes == 0)
-		init_rseq(&rs, 87657444);
-	const double genInterval = 0.1;
-	
-	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)){
-		int starti = rseq(&rs) % vertices.size();
-		int endi = rseq(&rs) % vertices.size();
-		Vehicle *v = new Vehicle(vertices[endi]);
-		if(v->findPath(this, vertices[starti])){
-			vertices[starti]->add(v);
-			vehicles.insert(v);
-		}
-		else
-			delete v;
-	}
-
-	for(VehicleSet::iterator it = vehicles.begin(); it != vehicles.end();){
-		VehicleSet::iterator next = it;
-		++next;
-		Vehicle *v = *it;
-		if(!v->update(dt))
-			vehicles.erase(it);
-		it = next;
-	}
-
-	invokes++;
-	global_time += dt;
-}
 
 static double gtime = 0.;
 static int rollview = 0;
@@ -173,6 +111,16 @@ double calcPerp(double para[2], double perp[2], const double pos[2], const doubl
 	}
 	return norm;
 }
+
+int g_pressed = 0;
+
+int g_prevX = -1;
+int g_prevY = -1;
+int g_prevZ = -1;
+int g_curX = -1;
+int g_curY = -1;
+int g_width = 0;
+int g_height = 0;
 
 /// \brief Callback for drawing
 void draw_func(double dt)
@@ -265,7 +213,6 @@ void draw_func(double dt)
 		v->draw();
 	}
 
-
 	// Draw Vehicle's path length distribution chart.
 	glColor4f(1,1,1,1);
 	int maxStepCount = 0;
@@ -320,6 +267,8 @@ void display_func(void){
 
 		if(!pause){
 			graph.update(dt);
+			printf("moving factor: %d / %d = %lg\n", Vehicle::movingSteps, Vehicle::movingSteps + Vehicle::jammedSteps,
+				(double)Vehicle::movingSteps / (Vehicle::movingSteps + Vehicle::jammedSteps));
 		}
 
 		gtime = t = t1;
@@ -335,6 +284,8 @@ void idle(void){
 /// \brief Callback for window size change
 void reshape_func(int w, int h)
 {
+	g_width = w;
+	g_height = h;
 	int m = w < h ? h : w;
 	glViewport(0, 0, w, h);
 }
@@ -349,18 +300,13 @@ static void key_func(unsigned char key, int x, int y){
 	}
 }
 
-int g_pressed = 0;
-
-int g_prevX = -1;
-int g_prevY = -1;
-int g_prevZ = -1;
 
 /// \brief Callback for mouse input
 static void mouse_func(int button, int state, int x, int y){
 	if (button == GLUT_LEFT_BUTTON) {
 		if (state == GLUT_DOWN) {
-			g_prevX = x;
-			g_prevY = y;
+			g_prevX = g_curX = x;
+			g_prevY = g_curY = y;
 			g_pressed = 1;
 		}
 		else if (state == GLUT_UP) {
@@ -382,8 +328,8 @@ static void mouse_func(int button, int state, int x, int y){
 void motion_func(int x, int y){
 	if (g_pressed != 0) {
 
-		g_prevX = x;
-		g_prevY = y;
+		g_curX = x;
+		g_curY = y;
 
 		glutPostRedisplay();
 

@@ -34,7 +34,7 @@ public:
 		other.getPos(endPos);
 		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
 	}
-	bool connect(GraphVertex *other);
+	bool connect(Graph &graph, GraphVertex *other);
 	void add(Vehicle *v);
 };
 
