@@ -33,6 +33,7 @@ public:
 	}
 	int getPassCount()const{return passCount;}
 	static int getMaxPassCount(){return maxPassCount;}
+	bool isIntersecting(const double start[2], const double dir0[2])const;
 };
 
 

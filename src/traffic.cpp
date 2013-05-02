@@ -112,6 +112,16 @@ double calcPerp(double para[2], double perp[2], const double pos[2], const doubl
 	return norm;
 }
 
+int g_pressed = 0;
+
+int g_prevX = -1;
+int g_prevY = -1;
+int g_prevZ = -1;
+int g_curX = -1;
+int g_curY = -1;
+int g_width = 0;
+int g_height = 0;
+
 /// \brief Callback for drawing
 void draw_func(double dt)
 {
@@ -126,6 +136,16 @@ void draw_func(double dt)
 	glScaled(0.005, 0.005, 1);
 
 	char buf[128];
+
+	double dragStart[2], dragEnd[2], dragDir[2];
+	if(g_pressed){
+		dragStart[0] = ((double)g_prevX / g_width * 2. - 1.) * 200.;
+		dragStart[1] = ((double)g_prevY / g_height * 2. - 1.) * -200.;
+		dragEnd[0] = ((double)g_curX / g_width * 2. - 1.) * 200.;
+		dragEnd[1] = ((double)g_curY / g_height * 2. - 1.) * -200.;
+		dragDir[0] = dragEnd[0] - dragStart[0];
+		dragDir[1] = dragEnd[1] - dragStart[1];
+	}
 
 	// TODO: In this logic, we draw the road (edge) twice.
 	const std::vector<GraphVertex*> &vertices = graph.getVertices();
@@ -161,7 +181,10 @@ void draw_func(double dt)
 
 			glBegin(GL_QUADS);
 			// Asphalt color
-			glColor4f(0.5, 0.5, 0.5, 1);
+			if(g_pressed && it2->second->isIntersecting(dragStart, dragDir))
+				glColor4f(1., 0., 1., 1.);
+			else
+				glColor4f(0.5, 0.5, 0.5, 1);
 			glVertex2d(pos[0] * 200 - perp[0] * size, pos[1] * 200 - perp[1] * size);
 			glVertex2d(dpos[0] * 200 - perp[0] * size, dpos[1] * 200 - perp[1] * size);
 			glVertex2d(pos[0] * 200 + perp[0] * size, pos[1] * 200 + perp[1] * size);
@@ -203,6 +226,13 @@ void draw_func(double dt)
 		v->draw();
 	}
 
+	if(g_pressed){
+		glColor4f(1,1,0,1);
+		glBegin(GL_LINES);
+		glVertex2dv(dragStart);
+		glVertex2dv(dragEnd);
+		glEnd();
+	}
 
 	// Draw Vehicle's path length distribution chart.
 	glColor4f(1,1,1,1);
@@ -273,6 +303,8 @@ void idle(void){
 /// \brief Callback for window size change
 void reshape_func(int w, int h)
 {
+	g_width = w;
+	g_height = h;
 	int m = w < h ? h : w;
 	glViewport(0, 0, w, h);
 }
@@ -287,18 +319,13 @@ static void key_func(unsigned char key, int x, int y){
 	}
 }
 
-int g_pressed = 0;
-
-int g_prevX = -1;
-int g_prevY = -1;
-int g_prevZ = -1;
 
 /// \brief Callback for mouse input
 static void mouse_func(int button, int state, int x, int y){
 	if (button == GLUT_LEFT_BUTTON) {
 		if (state == GLUT_DOWN) {
-			g_prevX = x;
-			g_prevY = y;
+			g_prevX = g_curX = x;
+			g_prevY = g_curY = y;
 			g_pressed = 1;
 		}
 		else if (state == GLUT_UP) {
@@ -320,8 +347,8 @@ static void mouse_func(int button, int state, int x, int y){
 void motion_func(int x, int y){
 	if (g_pressed != 0) {
 
-		g_prevX = x;
-		g_prevY = y;
+		g_curX = x;
+		g_curY = y;
 
 		glutPostRedisplay();
 
