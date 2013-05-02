@@ -101,6 +101,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graph.cpp" />
     <ClCompile Include="src\GraphEdge.cpp" />
     <ClCompile Include="src\GraphVertex.cpp" />
     <ClCompile Include="clib\rseq.c" />
@@ -109,6 +110,7 @@
     <ClCompile Include="src\Vehicle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graph.h" />
     <ClInclude Include="src\GraphEdge.h" />
     <ClInclude Include="src\GraphVertex.h" />
     <ClInclude Include="src\Vehicle.h" />
