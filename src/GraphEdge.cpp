@@ -34,10 +34,10 @@ bool GraphEdge::intersectTest(const double start0[2], const double dir0[2], cons
 	double startDiff[2];
 	for(int j = 0; j < 2; j++)
 		startDiff[j] = start1[j] - start0[j];
-	double t1 = (startDiff[0] * dir0[1] - startDiff[1] * dir0[0]) / dirvp;
+	double t1 = -(startDiff[0] * dir0[1] - startDiff[1] * dir0[0]) / dirvp;
 	if(t1 < 0 || 1 <= t1)
 		return false;
-	double t0 = (startDiff[0] * dir1[1] - startDiff[1] * dir1[0]) / dirvp;
+	double t0 = -(startDiff[0] * dir1[1] - startDiff[1] * dir1[0]) / dirvp;
 	if(t0 < 0 || 1 <= t0)
 		return false;
 	return true;

@@ -138,7 +138,7 @@ void draw_func(double dt)
 	char buf[128];
 
 	double dragStart[2], dragEnd[2], dragDir[2];
-	if(g_pressed){
+	if(1||g_pressed){
 		dragStart[0] = ((double)g_prevX / g_width * 2. - 1.) * 200.;
 		dragStart[1] = ((double)g_prevY / g_height * 2. - 1.) * -200.;
 		dragEnd[0] = ((double)g_curX / g_width * 2. - 1.) * 200.;
@@ -226,12 +226,28 @@ void draw_func(double dt)
 		v->draw();
 	}
 
-	if(g_pressed){
+	if(/*g_pressed*/1){
 		glColor4f(1,1,0,1);
 		glBegin(GL_LINES);
 		glVertex2dv(dragStart);
 		glVertex2dv(dragEnd);
 		glEnd();
+
+		const double testStarts[3][2] = {{0, 0}, {0,0}, {0,0}}, testEnds[3][2] = {{0, 100}, {100, 0}, {100, 100}};
+		for(int i = 0; i < 3; i++){
+			const double *testStart = testStarts[i], *testEnd = testEnds[i];
+			double testDir[2];
+			testDir[0] = testEnd[0] - testStart[0];
+			testDir[1] = testEnd[1] - testStart[1];
+			if(GraphEdge::intersectTest(dragStart, dragDir, testStart, testDir))
+				glColor4f(1,0,1,1);
+			else
+				glColor4f(1,1,0,1);
+			glBegin(GL_LINES);
+			glVertex2dv(testStart);
+			glVertex2dv(testEnd);
+			glEnd();
+		}
 	}
 
 	// Draw Vehicle's path length distribution chart.
