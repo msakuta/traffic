@@ -139,10 +139,10 @@ void draw_func(double dt)
 
 	double dragStart[2], dragEnd[2], dragDir[2];
 	if(1||g_pressed){
-		dragStart[0] = ((double)g_prevX / g_width * 2. - 1.) * 200.;
-		dragStart[1] = ((double)g_prevY / g_height * 2. - 1.) * -200.;
-		dragEnd[0] = ((double)g_curX / g_width * 2. - 1.) * 200.;
-		dragEnd[1] = ((double)g_curY / g_height * 2. - 1.) * -200.;
+		dragStart[0] = ((double)g_prevX / g_width * 2. - 1.) * 1.;
+		dragStart[1] = ((double)g_prevY / g_height * 2. - 1.) * -1.;
+		dragEnd[0] = ((double)g_curX / g_width * 2. - 1.) * 1.;
+		dragEnd[1] = ((double)g_curY / g_height * 2. - 1.) * -1.;
 		dragDir[0] = dragEnd[0] - dragStart[0];
 		dragDir[1] = dragEnd[1] - dragStart[1];
 	}
@@ -227,14 +227,17 @@ void draw_func(double dt)
 	}
 
 	if(/*g_pressed*/1){
+		glPushMatrix();
+		glScaled(200, 200, 1);
 		glColor4f(1,1,0,1);
 		glBegin(GL_LINES);
 		glVertex2dv(dragStart);
 		glVertex2dv(dragEnd);
 		glEnd();
 
-		const double testStarts[3][2] = {{0, 0}, {0,0}, {0,0}}, testEnds[3][2] = {{0, 100}, {100, 0}, {100, 100}};
-		for(int i = 0; i < 3; i++){
+		const double testStarts[4][2] = {{0, 0}, {0,0}, {0,0}, {-0.25, 0.25}},
+			testEnds[4][2] = {{0, 0.5}, {0.5, 0}, {0.5, 0.5}, {-0.5, 0.5}};
+		for(int i = 0; i < 4; i++){
 			const double *testStart = testStarts[i], *testEnd = testEnds[i];
 			double testDir[2];
 			testDir[0] = testEnd[0] - testStart[0];
@@ -248,6 +251,7 @@ void draw_func(double dt)
 			glVertex2dv(testEnd);
 			glEnd();
 		}
+		glPopMatrix();
 	}
 
 	// Draw Vehicle's path length distribution chart.
