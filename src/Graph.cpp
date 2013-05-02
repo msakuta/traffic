@@ -11,7 +11,7 @@ extern "C"{
 }
 
 Graph::Graph() : global_time(0){
-	int n = 50;
+	int n = 90;
 	random_sequence rs;
 	init_rseq(&rs, 342125);
 	for(int i = 0; i < n; i++){
@@ -20,10 +20,11 @@ Graph::Graph() : global_time(0){
 		vertices.push_back(v);
 	}
 
-	int m = n * 10;
+	int m = n * 50;
 	for(int i = 0; i < m; i++){
 		int s = rseq(&rs) % n, e = rseq(&rs) % n;
-		vertices[s]->connect(vertices[e]);
+		if(s != e && vertices[s]->getEdges().size() < 4 && vertices[e]->getEdges().size() < 4)
+			vertices[s]->connect(*this, vertices[e]);
 	}
 }
 

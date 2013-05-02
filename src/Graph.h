@@ -14,13 +14,14 @@ class Vehicle;
 class Graph{
 public:
 	typedef std::set<Vehicle*> VehicleSet;
+	typedef std::vector<GraphVertex*> VertexList;
 protected:
-	std::vector<GraphVertex*> vertices;
+	VertexList vertices;
 	VehicleSet vehicles;
 	double global_time;
 public:
 	Graph();
-	const std::vector<GraphVertex*> &getVertices()const{return vertices;}
+	const VertexList &getVertices()const{return vertices;}
 	const VehicleSet &getVehicles()const{return vehicles;}
 	void update(double dt);
 };
