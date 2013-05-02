@@ -33,7 +33,7 @@ void Graph::update(double dt){
 	static random_sequence rs;
 	if(invokes == 0)
 		init_rseq(&rs, 87657444);
-	const double genInterval = 0.1;
+	const double genInterval = 0.01;
 
 	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)){
 		int starti = rseq(&rs) % vertices.size();

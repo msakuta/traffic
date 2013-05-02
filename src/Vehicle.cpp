@@ -117,11 +117,14 @@ bool Vehicle::checkTraffic(GraphEdge *edge, double pos){
 bool Vehicle::update(double dt){
 	do{
 		if(checkTraffic(edge, pos)){
+			jammed = true;
 			jammedSteps++;
 			break;
 		}
-		else
+		else{
+			jammed = false;
 			movingSteps++;
+		}
 		if(edge->getLength() < pos + velocity * dt && 1 < path.size()){
 			GraphVertex::EdgeMap &edges = const_cast<GraphVertex::EdgeMap&>(path.back()->getEdges());
 			GraphVertex *next = *(path.rbegin()+1);
@@ -178,9 +181,13 @@ void Vehicle::draw(){
 	glRotated(angle * 360 / M_2PI, 0, 0, 1);
 	for(int i = 0; i < 2; i++){
 		if(i == 0)
-			glColor3fv(color);
-		else
-			glColor4f(0,0,0,1);
+				glColor3fv(color);
+		else{
+			if(jammed)
+				glColor4f(1,0,0,1);
+			else
+				glColor4f(0,0,0,1);
+		}
 		glBegin(i == 0 ? GL_QUADS : GL_LINE_LOOP);
 		glVertex2d(-5, -2);
 		glVertex2d(-5,  2);
