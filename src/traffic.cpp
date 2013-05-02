@@ -267,6 +267,8 @@ void display_func(void){
 
 		if(!pause){
 			graph.update(dt);
+			printf("moving factor: %d / %d = %lg\n", Vehicle::movingSteps, Vehicle::movingSteps + Vehicle::jammedSteps,
+				(double)Vehicle::movingSteps / (Vehicle::movingSteps + Vehicle::jammedSteps));
 		}
 
 		gtime = t = t1;

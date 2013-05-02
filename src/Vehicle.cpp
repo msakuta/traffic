@@ -34,6 +34,8 @@ extern "C"{
 
 
 int Vehicle::stepStats[Vehicle::stepStatCount] = {0};
+int Vehicle::movingSteps = 0;
+int Vehicle::jammedSteps = 0;
 
 
 bool Vehicle::findPath(Graph *g, GraphVertex *start){
@@ -114,8 +116,12 @@ bool Vehicle::checkTraffic(GraphEdge *edge, double pos){
 
 bool Vehicle::update(double dt){
 	do{
-		if(checkTraffic(edge, pos))
+		if(checkTraffic(edge, pos)){
+			jammedSteps++;
 			break;
+		}
+		else
+			movingSteps++;
 		if(edge->getLength() < pos + velocity * dt && 1 < path.size()){
 			GraphVertex::EdgeMap &edges = const_cast<GraphVertex::EdgeMap&>(path.back()->getEdges());
 			GraphVertex *next = *(path.rbegin()+1);

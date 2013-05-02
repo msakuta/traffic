@@ -25,6 +25,8 @@ public:
 	typedef std::map<GraphVertex*, GraphVertex*> VertexMap;
 	typedef std::vector<GraphVertex*> Path;
 	static const int stepStatCount = 20;
+	static int movingSteps; ///< Step accumulator for moving frames for all Vehicles.
+	static int jammedSteps; ///< Step accumulator for jammed frames for all Vehicles.
 protected:
 	const GraphVertex *dest;
 	GraphEdge *edge;
