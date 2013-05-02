@@ -34,6 +34,7 @@ public:
 	int getPassCount()const{return passCount;}
 	static int getMaxPassCount(){return maxPassCount;}
 	bool isIntersecting(const double start[2], const double dir0[2])const;
+	static bool intersectTest(const double start0[2], const double dir0[2], const double start1[2], const double dir1[2]);
 };
 
 
