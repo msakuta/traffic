@@ -47,17 +47,18 @@ void Graph::update(double dt){
 		init_rseq(&rs, 87657444);
 	const double genInterval = 0.1;
 
-	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)){
+	if(fmod(global_time + dt, genInterval) < fmod(global_time, genInterval)) do{
 		int starti = rseq(&rs) % vertices.size();
 		int endi = rseq(&rs) % vertices.size();
 		Vehicle *v = new Vehicle(vertices[endi]);
 		if(v->findPath(this, vertices[starti])){
 			vertices[starti]->add(v);
 			vehicles.insert(v);
+			break;
 		}
 		else
 			delete v;
-	}
+	} while(true);
 
 	for(VehicleSet::iterator it = vehicles.begin(); it != vehicles.end();){
 		VehicleSet::iterator next = it;
