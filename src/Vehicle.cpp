@@ -97,9 +97,15 @@ bool Vehicle::checkTraffic(GraphEdge *edge, double pos){
 	bool jammed = false;
 	for(GraphEdge::VehicleSet::const_iterator it = vehicles.begin(); it != vehicles.end(); ++it){
 		Vehicle *v = *it;
-		// If we are going on opposite direction, ignore it
-		if(v->velocity * this->velocity < 0)
+
+		// If we are going on opposite direction, ignore it.
+		// But the velocity is by definition always approaches destination in
+		// positive side, so we must look the path to find the actual direction on the edge.
+//		if(v->velocity * this->velocity < 0)
+//			continue;
+		if(v->getPath().back() != path.back())
 			continue;
+
 		if(0 < this->velocity){
 			if(this->pos < v->pos && v->pos < this->pos + vehicleInterval){
 				jammed = true;
