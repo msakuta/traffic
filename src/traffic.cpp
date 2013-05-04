@@ -142,13 +142,21 @@ void draw_func(double dt)
 	for(std::vector<GraphVertex*>::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
 		double pos[2];
 		(*it)->getPos(pos);
-		glColor4f(1,0,0,1);
 
 		glPushMatrix();
-		glBegin(GL_LINE_LOOP);
-		for(int i = 0; i < 16; i++)
-			glVertex2d(pos[0] * 200 + vertexRadius * cos(i * M_2PI / 16.), pos[1] * 200 + vertexRadius * sin(i * M_2PI / 16.));
-		glEnd();
+		for(int pass = 0; pass < 2; pass++){
+			if(pass == 0){
+				glColor4f(0.5, 0.5, 0.5, 1);
+				glBegin(GL_POLYGON);
+			}
+			else{
+				glColor4f(1,0,0,1);
+				glBegin(GL_LINE_LOOP);
+			}
+			for(int i = 0; i < 16; i++)
+				glVertex2d(pos[0] * 200 + vertexRadius * cos(i * M_2PI / 16.), pos[1] * 200 + vertexRadius * sin(i * M_2PI / 16.));
+			glEnd();
+		}
 		glPopMatrix();
 
 		glRasterPos3d(pos[0] * 200, pos[1] * 200., 0.);
