@@ -19,11 +19,9 @@ void GraphEdge::add(Vehicle *v){
 
 
 bool GraphEdge::isIntersecting(const double startPos0[2], const double dir0[2])const{
-	double startPos[2], endPos[2], dir[2];
-	getStart()->getPos(startPos);
-	getEnd()->getPos(endPos);
-	for(int j = 0; j < 2; j++)
-		dir[j] = endPos[j] - startPos[j];
+	Vec2d startPos = getStart()->getPos();
+	Vec2d endPos = getEnd()->getPos();
+	Vec2d dir = endPos - startPos;
 	return intersectTest(startPos0, dir0, startPos, dir);
 }
 

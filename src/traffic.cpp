@@ -140,15 +140,22 @@ void draw_func(double dt)
 	// TODO: In this logic, we draw the road (edge) twice.
 	const std::vector<GraphVertex*> &vertices = graph.getVertices();
 	for(std::vector<GraphVertex*>::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
-		double pos[2];
-		(*it)->getPos(pos);
-		glColor4f(1,0,0,1);
+		Vec2d pos = (*it)->getPos();
 
 		glPushMatrix();
-		glBegin(GL_LINE_LOOP);
-		for(int i = 0; i < 16; i++)
-			glVertex2d(pos[0] * 200 + vertexRadius * cos(i * M_2PI / 16.), pos[1] * 200 + vertexRadius * sin(i * M_2PI / 16.));
-		glEnd();
+		for(int pass = 0; pass < 2; pass++){
+			if(pass == 0){
+				glColor4f(0.5, 0.5, 0.5, 1);
+				glBegin(GL_POLYGON);
+			}
+			else{
+				glColor4f(1,0,0,1);
+				glBegin(GL_LINE_LOOP);
+			}
+			for(int i = 0; i < 16; i++)
+				glVertex2d(pos[0] * 200 + vertexRadius * cos(i * M_2PI / 16.), pos[1] * 200 + vertexRadius * sin(i * M_2PI / 16.));
+			glEnd();
+		}
 		glPopMatrix();
 
 		glRasterPos3d(pos[0] * 200, pos[1] * 200., 0.);
@@ -156,9 +163,8 @@ void draw_func(double dt)
 		putstring(buf);
 
 		for(GraphVertex::EdgeMap::const_iterator it2 = (*it)->getEdges().begin(); it2 != (*it)->getEdges().end(); ++it2){
-			double dpos[2];
 			int passCount = it2->second->getPassCount();
-			it2->first->getPos(dpos);
+			Vec2d dpos = it2->first->getPos();
 
 			// Obtain vector perpendicular to the edige's direction.
 			double para[2], perp[2];

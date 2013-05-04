@@ -246,6 +246,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="cpplib"
+				>
+				<File
+					RelativePath=".\cpplib\vec2.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
