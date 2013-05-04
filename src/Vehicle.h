@@ -34,11 +34,12 @@ protected:
 	double pos; ///< [0,1)
 	double velocity;
 	GLfloat color[3];
+	bool jammed; ///< Whether last frame is jammed
 	static int stepStats[stepStatCount];
 	bool findPathInt(Graph *, GraphVertex *root, VertexMap &prevMap, VertexSet &visited);
 	bool checkTraffic(GraphEdge *, double pos);
 public:
-	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1){
+	Vehicle(GraphVertex *dest) : dest(dest), edge(NULL), pos(0), velocity(0.1), jammed(false){
 		for(int i = 0; i < 3; i++)
 			color[i] = (GLfloat)rand() / RAND_MAX;
 	}
