@@ -4,7 +4,7 @@
 #ifndef GRAPHVERTEX_H
 #define GRAPHVERTEX_H
 
-
+#include <cpplib/vec2.h>
 #include <math.h>
 #include <map>
 
@@ -21,7 +21,7 @@ public:
 	typedef std::map<GraphVertex*, GraphEdge*> EdgeMap;
 protected:
 	EdgeMap edges;
-	double pos[2];
+	Vec2d pos;
 public:
 	GraphVertex(double x, double y){
 		pos[0] = x, pos[1] = y;
