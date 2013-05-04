@@ -24,7 +24,7 @@ bool GraphVertex::connect(Graph &graph, GraphVertex *other){
 	this->getPos(startPos0);
 	other->getPos(endPos0);
 	for(int j = 0; j < 2; j++)
-		dir0[j] = startPos0[j] - endPos0[j];
+		dir0[j] = endPos0[j] - startPos0[j];
 	const Graph::VertexList &vertices = graph.getVertices();
 	for(Graph::VertexList::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
 		if(*it == this)
