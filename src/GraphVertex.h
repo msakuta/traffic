@@ -26,17 +26,15 @@ public:
 	GraphVertex(double x, double y){
 		pos[0] = x, pos[1] = y;
 	}
-	void getPos(double pos[2])const{pos[0] = this->pos[0]; pos[1] = this->pos[1];}
+	const Vec2d &getPos()const{return pos;}
 	const EdgeMap &getEdges()const{return edges;}
 	double measureDistance(const GraphVertex &other)const{
-		double endPos[2];
-		other.getPos(endPos);
+		Vec2d endPos = other.getPos();
 		return measureDistance(endPos);
 	}
-	double measureDistance(const double endPos[2])const{
-		double startPos[2];
-		this->getPos(startPos);
-		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
+	double measureDistance(const Vec2d &endPos)const{
+		Vec2d startPos = this->getPos();
+		return (startPos - endPos).len();
 	}
 	bool connect(Graph &graph, GraphVertex *other);
 	void add(Vehicle *v);

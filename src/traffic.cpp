@@ -140,8 +140,7 @@ void draw_func(double dt)
 	// TODO: In this logic, we draw the road (edge) twice.
 	const std::vector<GraphVertex*> &vertices = graph.getVertices();
 	for(std::vector<GraphVertex*>::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
-		double pos[2];
-		(*it)->getPos(pos);
+		Vec2d pos = (*it)->getPos();
 
 		glPushMatrix();
 		for(int pass = 0; pass < 2; pass++){
@@ -164,9 +163,8 @@ void draw_func(double dt)
 		putstring(buf);
 
 		for(GraphVertex::EdgeMap::const_iterator it2 = (*it)->getEdges().begin(); it2 != (*it)->getEdges().end(); ++it2){
-			double dpos[2];
 			int passCount = it2->second->getPassCount();
-			it2->first->getPos(dpos);
+			Vec2d dpos = it2->first->getPos();
 
 			// Obtain vector perpendicular to the edige's direction.
 			double para[2], perp[2];

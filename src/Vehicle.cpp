@@ -154,16 +154,16 @@ bool Vehicle::update(double dt){
 
 
 void Vehicle::draw(){
-	double spos[2];
-	double epos[2];
-	double pos[2];
+	Vec2d spos;
+	Vec2d epos;
+	Vec2d pos;
 	if(getPath().back() == getEdge()->getStart()){
-		getEdge()->getEnd()->getPos(spos);
-		getEdge()->getStart()->getPos(epos);
+		spos = getEdge()->getEnd()->getPos();
+		epos = getEdge()->getStart()->getPos();
 	}
 	else{
-		getEdge()->getStart()->getPos(spos);
-		getEdge()->getEnd()->getPos(epos);
+		spos = getEdge()->getStart()->getPos();
+		epos = getEdge()->getEnd()->getPos();
 	}
 
 	double perp[2];

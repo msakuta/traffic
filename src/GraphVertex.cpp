@@ -21,11 +21,9 @@ bool GraphVertex::connect(Graph &graph, GraphVertex *other){
 	if(maxEdgeLength < length)
 		return false; // Avoid adding long edges
 
-	double startPos0[2], endPos0[2], dir0[2];
-	this->getPos(startPos0);
-	other->getPos(endPos0);
-	for(int j = 0; j < 2; j++)
-		dir0[j] = endPos0[j] - startPos0[j];
+	Vec2d startPos0 = this->getPos();
+	Vec2d endPos0 = other->getPos();
+	Vec2d dir0 = endPos0 - startPos0;
 	const Graph::VertexList &vertices = graph.getVertices();
 	for(Graph::VertexList::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
 		if(*it == this)
