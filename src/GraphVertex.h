@@ -29,9 +29,13 @@ public:
 	void getPos(double pos[2])const{pos[0] = this->pos[0]; pos[1] = this->pos[1];}
 	const EdgeMap &getEdges()const{return edges;}
 	double measureDistance(const GraphVertex &other)const{
-		double startPos[2], endPos[2];
-		this->getPos(startPos);
+		double endPos[2];
 		other.getPos(endPos);
+		return measureDistance(endPos);
+	}
+	double measureDistance(const double endPos[2])const{
+		double startPos[2];
+		this->getPos(startPos);
 		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
 	}
 	bool connect(Graph &graph, GraphVertex *other);

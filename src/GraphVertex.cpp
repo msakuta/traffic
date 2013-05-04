@@ -8,7 +8,8 @@
 #include "Graph.h"
 
 
-const double vertexRadius = 5.;
+const double vertexRadius = 2.5;
+const double maxEdgeLength = 0.2;
 
 
 bool GraphVertex::connect(Graph &graph, GraphVertex *other){
@@ -17,7 +18,7 @@ bool GraphVertex::connect(Graph &graph, GraphVertex *other){
 		return false; // Already added
 
 	double length = measureDistance(*other);
-	if(0.6 < length)
+	if(maxEdgeLength < length)
 		return false; // Avoid adding long edges
 
 	double startPos0[2], endPos0[2], dir0[2];

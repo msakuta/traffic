@@ -15,6 +15,7 @@ class Graph{
 public:
 	typedef std::set<Vehicle*> VehicleSet;
 	typedef std::vector<GraphVertex*> VertexList;
+	static const double minVertexDistance;
 protected:
 	VertexList vertices;
 	VehicleSet vehicles;
