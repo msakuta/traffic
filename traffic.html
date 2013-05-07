@@ -28,20 +28,24 @@ function Xor128(){
 }
 
 Xor128.prototype.nexti = function(){
-	var t = this.x ^ (this.x << 11) & 0xffffffff;
+	// We must bitmask and logical shift to simulate 32bit unsigned integer's behavior.
+	// The optimizer is likely to actually make it uint32 internally (hopefully).
+	var t = ((this.x ^ (this.x << 11)) & 0xffffffff) >>> 0;
+//	document.write("(t=" + t + ")");
 	this.x = this.y;
 	this.y = this.z;
 	this.z = this.w;
-	return this.w = this.w ^ (this.w >> 19) ^ (t ^ (t >> 8)) & 0xffffffff;
+	return this.w = ((this.w ^ (this.w >>> 19) ^ (t ^ (t >>> 8)) >>> 0) & 0xffffffff) >>> 0;
 }
 
 Xor128.prototype.next = function(){
-	return this.nexti() / 0xffffffff;
+	return this.nexti() / (0xffffffff >>> 0);
 }
 
 function GraphVertex(x,y){
 	this.x = x;
 	this.y = y;
+//	document.write(this.x + " " + this.y + ";");
 	this.edges = new Array();
 }
 
@@ -78,12 +82,13 @@ function Graph(width, height){
 	var rng = new Xor128(); // Create Random Number Generator
 	var n = 100;
 	this.vertices = new Array(n);
+//	document.write(width + " " + height + ";");
 	for(var i = 0; i < n; i++)
 		this.vertices[i] = new GraphVertex(rng.next() * width, rng.next() * height);
 	var m = n * 10;
 	for(var i = 0; i < m; i++){
 		var s = Math.floor(rng.next() * (n-1)), e = Math.floor(rng.next() * (n-1));
-		document.write(s + " " + e + ";");
+//		document.write(s + " " + e + ";");
 		this.vertices[s].connect(this.vertices[e]);
 	}
 }
