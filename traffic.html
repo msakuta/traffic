@@ -54,6 +54,8 @@ function resetTrans(ctx){
 }
 
 function draw() {
+	graph.update(0.1);
+
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0,width,height);
 
@@ -61,6 +63,7 @@ function draw() {
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 
+	ctx.strokeStyle = "#000";
 	ctx.fillStyle = "#000";
 	ctx.setTransform(1,0,0,1,0,0);
 	for(var i = 0; i < graph.vertices.length; i++){
@@ -80,6 +83,16 @@ function draw() {
 		}
 	}
 
+	ctx.strokeStyle = "#f00";
+	ctx.fillStyle = "#0ff";
+	for(var i = 0; i < graph.vehicles.length; i++){
+		var v = graph.vehicles[i];
+		var pos = v.calcPos();
+		ctx.beginPath();
+		ctx.arc(pos[0], pos[1], 7.5, 0, Math.PI*2, false);
+		ctx.fill();
+		ctx.stroke();
+	}
 }
 	</script>
 </body>

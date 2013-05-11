@@ -1,9 +1,4 @@
 
-function Vec2(x,y){
-	this.x = x;
-	this.y = y;
-}
-
 function GraphVertex(x,y){
 	this.x = x;
 	this.y = y;
@@ -171,6 +166,24 @@ Vehicle.prototype.update = function(dt){
 	}
 	this.onUpdate(dt);
 	return true;
+}
+
+Vehicle.prototype.calcPos = function(){
+	var v = this;
+	var spos = null;
+	var epos = null;
+	if(v.path.back() == v.edge.start){
+		spos = v.edge.end.getPos();
+		epos = v.edge.start.getPos();
+	}
+	else{
+		spos = v.edge.start.getPos();
+		epos = v.edge.end.getPos();
+	}
+	var pos = new Array(2);
+	for(var i = 0; i < 2; i++)
+		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length;
+	return pos;
 }
 
 Vehicle.prototype.onUpdate = function(dt){

@@ -23,19 +23,7 @@ var svg = SVG('scratch').size(width, height);
 var graph;
 
 function calcPos(v,shape){
-	var spos = null;
-	var epos = null;
-	if(v.path.back() == v.edge.start){
-		spos = v.edge.end.getPos();
-		epos = v.edge.start.getPos();
-	}
-	else{
-		spos = v.edge.start.getPos();
-		epos = v.edge.end.getPos();
-	}
-	var pos = new Array(2);
-	for(var i = 0; i < 2; i++)
-		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length;
+	var pos = v.calcPos();
 	shape.center(pos[0], pos[1]).stroke('#f00').fill('#0ff');
 }
 
