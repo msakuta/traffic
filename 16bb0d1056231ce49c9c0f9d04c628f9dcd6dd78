@@ -1,0 +1,5 @@
+Tested in Google Chrome 26.0, Firefox 20.0.1, Opera 11.61,
+Internet Explorer 9 on Windows 7 64bit and Google Chrome 18.0 for mobile
+on Android 4.1.
+
+svg.html still refuses to work in Firefox 3.6.10 on Fedora Core 14.
