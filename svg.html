@@ -8,12 +8,17 @@
 	<div id="header">
 		<h1>Traffic Test</h1>
 	</div>
-	<canvas id="scratch" width="400px" height="400px" style="width: 400px; height: 400px;"></canvas>
+	<div id="scratch" width="400px" height="400px" style="width: 400px; height: 400px;"></div>
 	<svg>
 	<rect ry="20" x="0.5" y="0.5" fill="#ffff00" stroke="#ff0000" width="100" height="80"/>
 	<circle cx="100" cy="80" r="40" fill="#ff0000" stroke="#ffff00" />
 	</svg>
 	<div id="timeText"/>
-	<script type="text/javascript"></script>
+	<script type="text/javascript" src="svg.js/dist/svg.min.js"></script>
+	<script type="text/javascript">
+	var draw = SVG('scratch').size(400, 400);
+	draw.viewbox(0, 0, 297, 210);
+	var rect = draw.rect(100, 100).attr({ fill: '#f06' })
+	</script>
 </body>
 </html>
