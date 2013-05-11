@@ -57,7 +57,7 @@ function draw() {
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0,width,height);
 
-	ctx.font = "bold 24px Helvetica";
+	ctx.font = "bold 16px Helvetica";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 
@@ -68,9 +68,11 @@ function draw() {
 		ctx.beginPath();
 		ctx.arc(v.x, v.y, 10, 0, Math.PI*2, false);
 		ctx.stroke();
-		ctx.strokeText(v.edges.length, v.x, v.y);
+		ctx.fillText(v.id, v.x, v.y);
 		for(var j = 0; j < v.edges.length; j++){
 			var e = v.edges[j];
+			if(e == undefined)
+				continue;
 			ctx.beginPath();
 			ctx.moveTo(e.start.x, e.start.y);
 			ctx.lineTo(e.end.x, e.end.y);

@@ -22,10 +22,48 @@ var svg = SVG('scratch').size(width, height);
 
 var graph;
 
+function calcPos(v,shape){
+	var spos = null;
+	var epos = null;
+	if(v.path.back() == v.edge.start){
+		spos = v.edge.end.getPos();
+		epos = v.edge.start.getPos();
+	}
+	else{
+		spos = v.edge.start.getPos();
+		epos = v.edge.end.getPos();
+	}
+	var pos = new Array(2);
+	for(var i = 0; i < 2; i++)
+		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length;
+	shape.center(pos[0], pos[1]).stroke('#f00').fill('#0ff');
+}
+
+Vehicle.prototype.onVehicleAdd = function(){
+	var shape = svg.circle(15);
+	calcPos(this,shape);
+	this.shape = shape;
+}
+
+Vehicle.prototype.onVehicleDelete = function(v){
+	this.shape.remove();
+}
+
+Vehicle.prototype.onUpdate = function(dt){
+	calcPos(this,this.shape);
+}
+
 window.onload = function() {
 	graph = new Graph(width, height);
 
 	draw();
+
+	var loop = function() {
+		graph.update(0.1);
+		var timer = setTimeout(loop,100);
+	};
+
+	loop();
 };
 
 function draw() {
@@ -33,10 +71,12 @@ function draw() {
 		var v = graph.vertices[i];
 		var c = svg.circle(20);
 		c.center(v.x, v.y).fill('#fff').stroke('#000');
-		var t = svg.text(v.edges.length.toString());
+		var t = svg.text(v.id.toString());
 		t.center(v.x, v.y);
 		for(var j = 0; j < v.edges.length; j++){
 			var e = v.edges[j];
+			if(e == undefined)
+				continue;
 			var l = svg.line(e.start.x, e.start.y, e.end.x, e.end.y);
 			l.stroke('#000');
 		}
