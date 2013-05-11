@@ -45,6 +45,7 @@
     <OutDir>Debug\</OutDir>
     <IntDir>Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <ExecutablePath>.;$(VCInstallDir)bin;$(WindowsSDK_ExecutablePath_x86);$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>Release\</OutDir>
@@ -101,6 +102,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graph.cpp" />
     <ClCompile Include="src\GraphEdge.cpp" />
     <ClCompile Include="src\GraphVertex.cpp" />
     <ClCompile Include="clib\rseq.c" />
@@ -109,6 +111,7 @@
     <ClCompile Include="src\Vehicle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graph.h" />
     <ClInclude Include="src\GraphEdge.h" />
     <ClInclude Include="src\GraphVertex.h" />
     <ClInclude Include="src\Vehicle.h" />

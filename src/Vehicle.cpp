@@ -34,6 +34,8 @@ extern "C"{
 
 
 int Vehicle::stepStats[Vehicle::stepStatCount] = {0};
+int Vehicle::movingSteps = 0;
+int Vehicle::jammedSteps = 0;
 
 
 bool Vehicle::findPath(Graph *g, GraphVertex *start){
@@ -89,8 +91,50 @@ bool Vehicle::findPathInt(Graph *g, GraphVertex *start, VertexMap &prevMap, Vert
 	return false;
 }
 
+bool Vehicle::checkTraffic(GraphEdge *edge, double pos){
+	static const double vehicleInterval = 0.07;
+	const GraphEdge::VehicleSet &vehicles =  edge->getVehicles();
+	bool jammed = false;
+	for(GraphEdge::VehicleSet::const_iterator it = vehicles.begin(); it != vehicles.end(); ++it){
+		Vehicle *v = *it;
+		// If we are going on opposite direction, ignore it
+		if(v->velocity * this->velocity < 0)
+			continue;
+		if(0 < this->velocity){
+			if(this->pos < v->pos && v->pos < this->pos + vehicleInterval){
+				jammed = true;
+				break;
+			}
+		}
+		else if(this->pos - vehicleInterval < v->pos && v->pos < this->pos){
+			jammed = true;
+			break;
+		}
+	}
+	return jammed;
+}
+
 bool Vehicle::update(double dt){
-	pos += velocity * dt;
+	do{
+		if(checkTraffic(edge, pos)){
+			jammed = true;
+			jammedSteps++;
+			break;
+		}
+		else{
+			jammed = false;
+			movingSteps++;
+		}
+		if(edge->getLength() < pos + velocity * dt && 1 < path.size()){
+			GraphVertex::EdgeMap &edges = const_cast<GraphVertex::EdgeMap&>(path.back()->getEdges());
+			GraphVertex *next = *(path.rbegin()+1);
+			GraphVertex::EdgeMap::iterator it = edges.find(next);
+			assert(it != edges.end());
+			if(checkTraffic(it->second, pos - edge->getLength()))
+				break;
+		}
+		pos += velocity * dt;
+	} while(0);
 	if(edge->getLength() < pos){
 		pos -= edge->getLength();
 		if(1 < path.size()){
@@ -113,16 +157,16 @@ bool Vehicle::update(double dt){
 
 
 void Vehicle::draw(){
-	double spos[2];
-	double epos[2];
-	double pos[2];
+	Vec2d spos;
+	Vec2d epos;
+	Vec2d pos;
 	if(getPath().back() == getEdge()->getStart()){
-		getEdge()->getEnd()->getPos(spos);
-		getEdge()->getStart()->getPos(epos);
+		spos = getEdge()->getEnd()->getPos();
+		epos = getEdge()->getStart()->getPos();
 	}
 	else{
-		getEdge()->getStart()->getPos(spos);
-		getEdge()->getEnd()->getPos(epos);
+		spos = getEdge()->getStart()->getPos();
+		epos = getEdge()->getEnd()->getPos();
 	}
 
 	double perp[2];
@@ -138,8 +182,12 @@ void Vehicle::draw(){
 	for(int i = 0; i < 2; i++){
 		if(i == 0)
 			glColor3fv(color);
-		else
-			glColor4f(0,0,0,1);
+		else{
+			if(jammed)
+				glColor4f(1,0,0,1);
+			else
+				glColor4f(0,0,0,1);
+		}
 		glBegin(i == 0 ? GL_QUADS : GL_LINE_LOOP);
 		glVertex2d(-5, -2);
 		glVertex2d(-5,  2);

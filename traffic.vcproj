@@ -186,6 +186,10 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
 			>
 			<File
+				RelativePath=".\src\Graph.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\GraphEdge.cpp"
 				>
 			</File>
@@ -215,6 +219,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc"
 			>
 			<File
+				RelativePath=".\src\Graph.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\GraphEdge.h"
 				>
 			</File>
@@ -235,6 +243,14 @@
 				</File>
 				<File
 					RelativePath="clib\timemeas.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="cpplib"
+				>
+				<File
+					RelativePath=".\cpplib\vec2.h"
 					>
 				</File>
 			</Filter>

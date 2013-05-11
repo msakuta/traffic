@@ -5,20 +5,34 @@
 #include "GraphVertex.h"
 #include "GraphEdge.h"
 #include "Vehicle.h"
+#include "Graph.h"
 
 
+const double vertexRadius = 2.5;
+const double maxEdgeLength = 0.2;
 
-const double vertexRadius = 5.;
 
-
-bool GraphVertex::connect(GraphVertex *other){
+bool GraphVertex::connect(Graph &graph, GraphVertex *other){
 	EdgeMap::iterator it = edges.find(other);
 	if(it != edges.end())
 		return false; // Already added
 
 	double length = measureDistance(*other);
-	if(0.6 < length)
+	if(maxEdgeLength < length)
 		return false; // Avoid adding long edges
+
+	Vec2d startPos0 = this->getPos();
+	Vec2d endPos0 = other->getPos();
+	Vec2d dir0 = endPos0 - startPos0;
+	const Graph::VertexList &vertices = graph.getVertices();
+	for(Graph::VertexList::const_iterator it = vertices.begin(); it != vertices.end(); ++it){
+		if(*it == this)
+			continue;
+		for(EdgeMap::iterator it2 = (*it)->edges.begin(); it2 != (*it)->edges.end(); ++it2){
+			if(it2->second->isIntersecting(startPos0, dir0))
+				return false;
+		}
+	}
 	GraphEdge *e = new GraphEdge(this, other);
 	edges[other] = e;
 	other->edges[this] = e;

@@ -4,7 +4,7 @@
 #ifndef GRAPHVERTEX_H
 #define GRAPHVERTEX_H
 
-
+#include <cpplib/vec2.h>
 #include <math.h>
 #include <map>
 
@@ -21,20 +21,22 @@ public:
 	typedef std::map<GraphVertex*, GraphEdge*> EdgeMap;
 protected:
 	EdgeMap edges;
-	double pos[2];
+	Vec2d pos;
 public:
 	GraphVertex(double x, double y){
 		pos[0] = x, pos[1] = y;
 	}
-	void getPos(double pos[2])const{pos[0] = this->pos[0]; pos[1] = this->pos[1];}
+	const Vec2d &getPos()const{return pos;}
 	const EdgeMap &getEdges()const{return edges;}
 	double measureDistance(const GraphVertex &other)const{
-		double startPos[2], endPos[2];
-		this->getPos(startPos);
-		other.getPos(endPos);
-		return sqrt((startPos[0] - endPos[0]) * (startPos[0] - endPos[0]) + (startPos[1] - endPos[1]) * (startPos[1] - endPos[1]));
+		Vec2d endPos = other.getPos();
+		return measureDistance(endPos);
 	}
-	bool connect(GraphVertex *other);
+	double measureDistance(const Vec2d &endPos)const{
+		Vec2d startPos = this->getPos();
+		return (startPos - endPos).len();
+	}
+	bool connect(Graph &graph, GraphVertex *other);
 	void add(Vehicle *v);
 };
 
