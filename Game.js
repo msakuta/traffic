@@ -237,12 +237,12 @@ function Game(width, height){
 //	document.write(width + " " + height + ";");
 	for(var i = 0; i < n; i++){
 		this.towers[i] = new Tower(this, rng.next() * width * 0.2 + width * 0.40, rng.next() * height * 0.2 + height * 0.4);
-/*		var kills = GetCookie("tower" + i + ".kills");
+		var kills = GetCookie("tower" + i + ".kills");
 		if(kills != null)
 			this.towers[i].kills = parseInt(kills);
 		var damage = GetCookie("tower" + i + ".damage");
 		if(damage != null)
-			this.towers[i].damage = parseInt(damage);*/
+			this.towers[i].damage = parseInt(damage);
 	}
 	this.pause = false;
 	this.mouseX = 0;
@@ -306,7 +306,7 @@ Game.prototype.update = function(dt){
 	}
 
 	if(this.cookie_time + 10. < Game.prototype.global_time){
-		for(var i = 0; i < this.towers.length;){
+		for(var i = 0; i < this.towers.length; i++){
 			var v = this.towers[i];
 			document.cookie = "tower" + i + ".kills=" + v.kills;
 			document.cookie = "tower" + i + ".damage=" + v.damage;
