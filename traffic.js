@@ -22,19 +22,6 @@ window.onload = function() {
 	loop();
 };
 
-function clockModel(ctx,col){
-	ctx.fillStyle = "#000";
-	ctx.beginPath();
-	ctx.moveTo(0.025, 0.2);
-	ctx.lineTo(0.05, 0.);
-	ctx.lineTo(0.025, -1);
-	ctx.lineTo(-0.025, -1);
-	ctx.lineTo(-0.05, 0.);
-	ctx.lineTo(-0.025, 0.2);
-	ctx.closePath();
-	ctx.fill();
-}
-
 function resetTrans(ctx){
 	ctx.setTransform(1,0,0,1,200,200);
 }
