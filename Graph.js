@@ -160,7 +160,22 @@ Array.prototype.back = function(){
 Vehicle.prototype.update = function(dt){
 	if(this.edge == null)
 		return false;
-	this.pos += this.velocity * dt;
+
+	// Check collision with other vehicles
+	do{
+		if(this.checkTraffic(this.edge, this.pos))
+			break;
+		if(this.edge.length < this.pos + this.velocity * dt && 1 < this.path.length){
+			var edges = this.path[this.path.length-1].edges;
+			var next = this.path[this.path.length-1];
+			var it = edges.find(next);
+//			assert(it != edges.end());
+			if(this.checkTraffic(it.second, pos - edge.length))
+				break;
+		}
+		this.pos += this.velocity * dt;
+	} while(0);
+
 	if(this.edge.length < this.pos){
 		this.pos -= this.edge.length;
 		if(1 < this.path.length){
@@ -195,6 +210,33 @@ Vehicle.prototype.calcPos = function(){
 	for(var i = 0; i < 2; i++)
 		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length;
 	return pos;
+}
+
+Vehicle.prototype.checkTraffic = function(edge, pos){
+	var vehicleInterval = 0.07;
+	var vehicles = edge.vehicles;
+	var jammed = false;
+	for(var i = 0; i < vehicles.length; i++){
+		var v = vehicles[i];
+		// If we are going on opposite direction, ignore it
+		// But the velocity is by definition always approaches destination in
+		// positive side, so we must look the path to find the actual direction on the edge.
+//		if(v.velocity * this.velocity < 0)
+//			continue;
+		if(v.path.back() !== this.path.back())
+			continue;
+		if(0 < this.velocity){
+			if(pos < v.pos && v.pos < pos + vehicleInterval){
+				jammed = true;
+				break;
+			}
+		}
+		else if(pos - vehicleInterval < v.pos && v.pos < pos){
+			jammed = true;
+			break;
+		}
+	}
+	return jammed;
 }
 
 Vehicle.prototype.onUpdate = function(dt){
