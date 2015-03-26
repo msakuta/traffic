@@ -254,6 +254,21 @@ Vehicle.prototype.onVehicleDelete = function(v){
 
 
 
+/// A pseudo-random number generator distributed in Poisson distribution.
+/// It uses Knuth's algorithm, which is not optimal when lambda gets
+/// so high.  We probably should use an approximation.
+function poissonRandom(rng,lambda){
+	var L = Math.exp(-lambda);
+	var k = 0;
+	var p = 1;
+	do{
+		k++;
+		p *= rng.next();
+	}while(L < p);
+	return k - 1;
+}
+
+
 function Graph(width, height){
 	this.rng = new Xor128(); // Create Random Number Generator
 	var rng = this.rng;
@@ -275,15 +290,13 @@ function Graph(width, height){
 Graph.prototype.global_time = 0;
 
 Graph.prototype.update = function(dt){
-//	static int invokes = 0;
-//	static random_sequence rs;
-//	if(invokes == 0)
-//		init_rseq(&rs, 87657444);
-	var genInterval = 0.1;
 	var global_time = Graph.prototype.global_time;
-	
-	if((global_time + dt) % genInterval < global_time % genInterval){
-		for(var i = 0; i < 10; i++){
+
+	// Number of vehicles generated in a frame distributes in Poisson distribution.
+	var numVehicles = poissonRandom(this.rng, 1);
+
+	for(var n = 0; n < numVehicles; n++){
+		for(var i = 0; i < 100; i++){
 			var starti = Math.floor(this.rng.next() * (this.vertices.length-1));
 			var endi = Math.floor(this.rng.next() * (this.vertices.length-1));
 			var v = new Vehicle(this.vertices[endi]);
