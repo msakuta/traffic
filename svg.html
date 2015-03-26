@@ -23,8 +23,18 @@ var svg = SVG('scratch').size(width, height);
 var graph;
 
 function calcPos(v,shape){
+	// A local function to convert a color channel intensity into hexadecimal notation
+	var numToHex = function (d){
+		var hex = Math.floor(d * 256).toString(16);
+
+		while(hex.length < 2)
+			hex = "0" + hex;
+
+		return hex;
+	}
 	var pos = v.calcPos();
-	shape.center(pos[0], pos[1]).stroke('#f00').fill('#0ff');
+	shape.center(pos[0], pos[1]).stroke('#f00').fill(
+		"#" + numToHex(v.color[0]) + numToHex(v.color[1]) + numToHex(v.color[2]));
 }
 
 Vehicle.prototype.onVehicleAdd = function(){
