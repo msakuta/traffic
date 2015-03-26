@@ -7,16 +7,15 @@ A simple traffic jam simulator.
 Introduction
 ------------
 One day I wondered why traffic jams occur as they are.
-This project tries to reproduce the phenomenon and visualize it
-with OpenGL/GLUT.
+This project tries to reproduce the phenomenon and visualize it.
+Originally it's written for OpenGL/GLUT, but there's a HTML5 canvas port.
+
+Try it now on your browser!
+
+http://msakuta.github.io/traffic/traffic.html
 
 
 Build
 -----
-You need Visual Studio (Express) 2008 or later on Windows to
-compile the project.
-Also you need GLUT binaries (GLUT.dll and GLUT.lib).
-Only the header file is included in this git repository.
-
-It should be easy to port the project to GLUT-compatible
-platforms.
+The HTML5 version of this project needs no building.
+You just need a modern browser to run it.
