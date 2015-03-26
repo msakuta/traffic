@@ -56,19 +56,26 @@ function draw() {
 		}
 	}
 
+	// A local function to convert a color channel intensity into hexadecimal notation
+	var numToHex = function (d){
+		var hex = Math.floor(d * 256).toString(16);
+
+		while(hex.length < 2)
+			hex = "0" + hex;
+
+		return hex;
+	}
+
 	ctx.font = "bold 12px Helvetica";
 
 	ctx.strokeStyle = "#f00";
 	for(var i = 0; i < graph.vehicles.length; i++){
 		var v = graph.vehicles[i];
 		var pos = v.calcPos();
-		ctx.fillStyle = "#0ff";
+		ctx.fillStyle = "#" + numToHex(v.color[0]) + numToHex(v.color[1]) + numToHex(v.color[2]);
 		ctx.beginPath();
 		ctx.arc(pos[0], pos[1], 7.5, 0, Math.PI*2, false);
 		ctx.fill();
 		ctx.stroke();
-
-		ctx.fillStyle = "#000";
-		ctx.fillText(v.id, pos[0], pos[1]);
 	}
 }
