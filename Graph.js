@@ -59,6 +59,16 @@ GraphEdge.prototype.addVehicle = function(v){
 	this.vehicles.push(v);
 }
 
+GraphEdge.prototype.deleteVehicle = function(v){
+	for(var i = 0; i < this.vehicles.length; i++){
+		if(this.vehicles[i] === v){
+			this.vehicles.splice(i, 1);
+			return true;
+		}
+	}
+	return false;
+}
+
 /// \brief Class representing a vehicle.
 /// \param dest The destination GraphVertex.
 function Vehicle(dest){
@@ -251,6 +261,7 @@ Graph.prototype.update = function(dt){
 		var v = this.vehicles[i];
 		if(!v.update(dt)){
 			v.onVehicleDelete();
+			v.edge.deleteVehicle(v);
 			this.vehicles.splice(i, 1);
 		}
 		else
