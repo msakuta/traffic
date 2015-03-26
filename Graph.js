@@ -62,6 +62,7 @@ GraphEdge.prototype.addVehicle = function(v){
 /// \brief Class representing a vehicle.
 /// \param dest The destination GraphVertex.
 function Vehicle(dest){
+	this.id = 0; // Initialize with invalid id
 	this.dest = dest;
 	this.edge = null;
 	this.path = new Array();
@@ -207,6 +208,7 @@ function Graph(width, height){
 	var n = 100;
 	this.vertices = new Array(n);
 	this.vehicles = [];
+	this.vehicleIdGen = 1;
 //	document.write(width + " " + height + ";");
 	for(var i = 0; i < n; i++)
 		this.vertices[i] = new GraphVertex(rng.next() * width, rng.next() * height);
@@ -234,6 +236,8 @@ Graph.prototype.update = function(dt){
 			var endi = Math.floor(this.rng.next() * (this.vertices.length-1));
 			var v = new Vehicle(this.vertices[endi]);
 			if(v.findPath(this, this.vertices[starti])){
+				// Assign the id only if addition of the vehicle is succeeded.
+				v.id = this.vehicleIdGen++;
 				this.vertices[starti].addVehicle(v);
 				this.vehicles.push(v);
 				v.onVehicleAdd();

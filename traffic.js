@@ -56,14 +56,19 @@ function draw() {
 		}
 	}
 
+	ctx.font = "bold 12px Helvetica";
+
 	ctx.strokeStyle = "#f00";
-	ctx.fillStyle = "#0ff";
 	for(var i = 0; i < graph.vehicles.length; i++){
 		var v = graph.vehicles[i];
 		var pos = v.calcPos();
+		ctx.fillStyle = "#0ff";
 		ctx.beginPath();
 		ctx.arc(pos[0], pos[1], 7.5, 0, Math.PI*2, false);
 		ctx.fill();
 		ctx.stroke();
+
+		ctx.fillStyle = "#000";
+		ctx.fillText(v.id, pos[0], pos[1]);
 	}
 }
