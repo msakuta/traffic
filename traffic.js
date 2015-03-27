@@ -45,7 +45,7 @@ function draw() {
 		ctx.arc(v.x, v.y, 10, 0, Math.PI*2, false);
 		ctx.stroke();
 		ctx.fillText(v.id, v.x, v.y);
-		for(var j = 0; j < v.edges.length; j++){
+		for(var j in v.edges){
 			var e = v.edges[j];
 			if(e == undefined)
 				continue;

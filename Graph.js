@@ -3,7 +3,7 @@ function GraphVertex(x,y){
 	this.x = x;
 	this.y = y;
 //	document.write(this.x + " " + this.y + ";");
-	this.edges = new Array();
+	this.edges = {}; // Edges are a map of destination id to GraphEdge object.
 	this.vehicles = [];
 	this.id = GraphVertex.prototype.idGen++;
 }
@@ -87,11 +87,14 @@ function Vehicle(dest){
 /// \param g The surrounding Graph.
 /// \param start The starting GraphVertex for finding path.
 Vehicle.prototype.findPath = function(g, start){
-	var visited = [];
+	var visited = {};
 	visited[start.id] = true;
 
-	var first = [];
-	first[start.id] = start;
+	// Unlike C++, we cannot have objects as indices for a map (dictionary).
+	// So we must have IDs of each vertex as indices instead and be aware that
+	// JavaScript hash indices are automatically converted to strings.
+	var first = {};
+	first[start.id] = null;
 
 	if(this.findPathInt(g, start, first, visited)){
 		if(this.path.length <= 1){
@@ -119,21 +122,24 @@ Vehicle.prototype.findPath = function(g, start){
 /// \param prevMap VertexMap
 /// \param visited VertexSet
 Vehicle.prototype.findPathInt = function(g, start, prevMap, visited){
-	var levelMap = [];
-	for(var it = 0; it < prevMap.length; it++){
-		var v = prevMap[it];
-		if(v == undefined)
+	var levelMap = {};
+	var hasLevelMap = false;
+	for(var it in prevMap){
+		var v = g.vertices[it];
+		if(v === undefined)
 			continue;
-		for(var it2 = 0; it2 < v.edges.length; it2++){
+		for(var it2 in v.edges){
 			if(it2 in visited)
 				continue;
 			var v2 = v.edges[it2];
-			if(v2 == undefined)
+			if(v2 === undefined)
 				continue;
 			visited[it2] = true;
+			// Obtain GraphVertex object from vertex pool in Graph object.
 			levelMap[it2] = v;
+			hasLevelMap = true;
 			if(it2 == this.dest.id){
-				if(v == v2.start)
+				if(v === v2.start)
 					this.path.push(v2.end);
 				else
 					this.path.push(v2.start);
@@ -142,9 +148,9 @@ Vehicle.prototype.findPathInt = function(g, start, prevMap, visited){
 			}
 		}
 	}
-	if(levelMap.length != 0){
+	if(hasLevelMap){
 		if(this.findPathInt(g, start, levelMap, visited)){
-			var v = levelMap[this.path.back()];
+			var v = levelMap[this.path.back().id];
 //			assert(v);
 			this.path.push(v);
 			return true;
@@ -166,11 +172,11 @@ Vehicle.prototype.update = function(dt){
 		if(this.checkTraffic(this.edge, this.pos))
 			break;
 		if(this.edge.length < this.pos + this.velocity * dt && 1 < this.path.length){
-			var edges = this.path[this.path.length-1].edges;
-			var next = this.path[this.path.length-1];
-			var it = edges.find(next);
+			var edges = this.path.back().edges;
+			var next = this.path.back();
+			var edge = edges[next.id];
 //			assert(it != edges.end());
-			if(this.checkTraffic(it.second, pos - edge.length))
+			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length))
 				break;
 		}
 		this.pos += this.velocity * dt;
@@ -180,9 +186,8 @@ Vehicle.prototype.update = function(dt){
 		this.pos -= this.edge.length;
 		if(1 < this.path.length){
 			var lastVertex = this.path.pop();
-//			delete edge.this;
-			this.edge = lastVertex;
-//			edge.add(this);
+			this.edge = lastVertex.edges[this.path.back().id];
+			this.edge.addVehicle(this);
 		}
 		else{
 //			edge->remove(this);
@@ -213,11 +218,13 @@ Vehicle.prototype.calcPos = function(){
 }
 
 Vehicle.prototype.checkTraffic = function(edge, pos){
-	var vehicleInterval = 0.07;
+	var vehicleInterval = 15;
 	var vehicles = edge.vehicles;
 	var jammed = false;
 	for(var i = 0; i < vehicles.length; i++){
 		var v = vehicles[i];
+		if(v === this) // Skip checking itself
+			continue;
 		// If we are going on opposite direction, ignore it
 		// But the velocity is by definition always approaches destination in
 		// positive side, so we must look the path to find the actual direction on the edge.
@@ -293,7 +300,7 @@ Graph.prototype.update = function(dt){
 	var global_time = Graph.prototype.global_time;
 
 	// Number of vehicles generated in a frame distributes in Poisson distribution.
-	var numVehicles = poissonRandom(this.rng, 1);
+	var numVehicles = poissonRandom(this.rng, 0.1);
 
 	for(var n = 0; n < numVehicles; n++){
 		for(var i = 0; i < 100; i++){
