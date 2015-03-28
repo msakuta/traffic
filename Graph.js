@@ -1,4 +1,6 @@
 
+var vertexRadius = 10.;
+
 function GraphVertex(x,y){
 	this.x = x;
 	this.y = y;
@@ -205,6 +207,25 @@ Vehicle.prototype.update = function(dt){
 	return true;
 }
 
+/// \brief Calculates parallel and perpendicular unit vectors against difference of given vectors.
+/// \param para Buffer for returning vector parallel to difference of pos and dpos and have a unit length
+/// \param perp Buffer for returning vector perpendicular to para and have a unit length
+/// \param pos Input vector for the starting point
+/// \param dpos Input vector for the destination point
+/// \returns Distance of the given vectors
+function calcPerp(para, perp, pos, dpos){
+	perp[0] = pos[1] - dpos[1];
+	perp[1] = -(pos[0] - dpos[0]);
+	var norm = Math.sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
+	perp[0] /= norm;
+	perp[1] /= norm;
+	if(para !== null){
+		para[0] = -(pos[0] - dpos[0]) / norm;
+		para[1] = -(pos[1] - dpos[1]) / norm;
+	}
+	return norm;
+}
+
 Vehicle.prototype.calcPos = function(){
 	var v = this;
 	var spos = null;
@@ -218,8 +239,13 @@ Vehicle.prototype.calcPos = function(){
 		epos = v.edge.end.getPos();
 	}
 	var pos = new Array(2);
+
+	var perp = new Array(2);
+	calcPerp(null, perp, spos, epos);
+
 	for(var i = 0; i < 2; i++)
-		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length;
+		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length
+			+ perp[i] * vertexRadius / 2.;
 	return pos;
 }
 
