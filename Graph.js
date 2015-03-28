@@ -79,6 +79,7 @@ function Vehicle(dest){
 	this.pos = 0;
 	this.velocity = 10;
 	this.color = new Array(3);
+	this.jammed = false;
 	for(var i = 0; i < 3; i++)
 		this.color[i] = Math.random();
 }
@@ -169,17 +170,22 @@ Vehicle.prototype.update = function(dt){
 
 	// Check collision with other vehicles
 	do{
-		if(this.checkTraffic(this.edge, this.pos))
+		if(this.checkTraffic(this.edge, this.pos)){
+			this.jammed = true;
 			break;
+		}
 		if(this.edge.length < this.pos + this.velocity * dt && 1 < this.path.length){
 			var edges = this.path.back().edges;
 			var next = this.path.back();
 			var edge = edges[next.id];
 //			assert(it != edges.end());
-			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length))
+			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length)){
+				this.jammed = true;
 				break;
+			}
 		}
 		this.pos += this.velocity * dt;
+		this.jammed = false;
 	} while(0);
 
 	if(this.edge.length < this.pos){

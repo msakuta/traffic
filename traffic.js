@@ -68,10 +68,10 @@ function draw() {
 
 	ctx.font = "bold 12px Helvetica";
 
-	ctx.strokeStyle = "#f00";
 	for(var i = 0; i < graph.vehicles.length; i++){
 		var v = graph.vehicles[i];
 		var pos = v.calcPos();
+		ctx.strokeStyle = v.jammed ? "#f00" : "#000";
 		ctx.fillStyle = "#" + numToHex(v.color[0]) + numToHex(v.color[1]) + numToHex(v.color[2]);
 		ctx.beginPath();
 		ctx.arc(pos[0], pos[1], 7.5, 0, Math.PI*2, false);
