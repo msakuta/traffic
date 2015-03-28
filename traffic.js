@@ -100,12 +100,32 @@ function draw() {
 
 	for(var i = 0; i < graph.vehicles.length; i++){
 		var v = graph.vehicles[i];
-		var pos = v.calcPos();
+		var spos = new Array(2);
+		var epos = new Array(2);
+		var pos = v.calcPos(spos, epos);
+
+		var angle = Math.atan2((spos[1] - epos[1]), spos[0] - epos[0]);
+
 		ctx.strokeStyle = v.jammed ? "#f00" : "#000";
 		ctx.fillStyle = "#" + numToHex(v.color[0]) + numToHex(v.color[1]) + numToHex(v.color[2]);
+
+		// Reset the transformation to identity
+		ctx.setTransform(1,0,0,1,0,0);
+
+		// Construct transformation matrix
+		ctx.translate(pos[0], pos[1]);
+		ctx.rotate(angle);
+
+		// Actually draw the vehicle's graphic
 		ctx.beginPath();
-		ctx.arc(pos[0], pos[1], 7.5, 0, Math.PI*2, false);
+		ctx.moveTo(-6, -3);
+		ctx.lineTo(-6,  3);
+		ctx.lineTo( 6,  4);
+		ctx.lineTo( 6, -4);		
 		ctx.fill();
 		ctx.stroke();
 	}
+
+	// Reset the transformation for the next drawing
+	ctx.setTransform(1,0,0,1,0,0);
 }

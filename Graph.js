@@ -226,7 +226,17 @@ function calcPerp(para, perp, pos, dpos){
 	return norm;
 }
 
-Vehicle.prototype.calcPos = function(){
+/// \brief Returns position of this vehicle in world coordinates, optionally returning edge ends this Vehicle is on.
+/// \param pSpos An array object for receiving starting position of the GraphEdge this Vehicle is on.
+///              Can be undefined to ignore the result.
+///              This parameter has a 'p' prefix to imply it's used like a pointer in C.
+/// \param pEpos An array object for receiving starting position of the GraphEdge this Vehicle is on.
+///              Can be undefined to ignore the result.
+///
+/// This function's main purpose is to calculate the world coordinates to display this Vehicle,
+/// but obtaining positions of both ends of the edges this vehicle is currently running is not something
+/// that we want separate function to do.  So this function can do both tasks at once.
+Vehicle.prototype.calcPos = function(pSpos, pEpos){
 	var v = this;
 	var spos = null;
 	var epos = null;
@@ -246,6 +256,13 @@ Vehicle.prototype.calcPos = function(){
 	for(var i = 0; i < 2; i++)
 		pos[i] = epos[i] * v.pos / v.edge.length + spos[i] * (v.edge.length - v.pos) / v.edge.length
 			+ perp[i] * vertexRadius / 2.;
+	
+	// Store optional returning values into passed buffers.
+	if(pSpos !== undefined)
+		pSpos[0] = spos[0], pSpos[1] = spos[1];
+	if(pEpos !== undefined)
+		pEpos[0] = epos[0], pEpos[1] = epos[1];
+
 	return pos;
 }
 
