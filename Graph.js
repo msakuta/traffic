@@ -357,11 +357,21 @@ function Graph(width, height){
 		// Use the position to create a GraphVertex.
 		this.vertices[i] = new GraphVertex(x, y);
 	}
-	var m = n * 10;
-	for(var i = 0; i < m; i++){
-		var s = Math.floor(rng.next() * (n-1)), e = Math.floor(rng.next() * (n-1));
-//		document.write(s + " " + e + ";");
-		this.vertices[s].connect(this.vertices[e]);
+	for(var i = 0; i < n; i++){
+		// If average number of edges a vertex has is 2, most vertices connect to far ones,
+		// which is ideal for simulating traffic.
+		// But we cannot set the parameter too high because  it would get cluttered and
+		// harder to grasp what's going on.
+		// The numbers of edges are assumed Poisson distributed.
+		var numEdges = poissonRandom(rng, 2);
+		for(var j = 0; j < numEdges; j++){
+			// Try to find close connections to make a network.
+			for(var tries = 0; tries < 500; tries++){
+				var e = Math.floor(rng.next() * (n-1));
+				if(this.vertices[i].connect(this.vertices[e]))
+					break;
+			}
+		}
 	}
 }
 
@@ -371,7 +381,7 @@ Graph.prototype.update = function(dt){
 	var global_time = Graph.prototype.global_time;
 
 	// Number of vehicles generated in a frame distributes in Poisson distribution.
-	var numVehicles = poissonRandom(this.rng, 0.1);
+	var numVehicles = poissonRandom(this.rng, 0.5);
 
 	for(var n = 0; n < numVehicles; n++){
 		for(var i = 0; i < 100; i++){
@@ -384,6 +394,7 @@ Graph.prototype.update = function(dt){
 				this.vertices[starti].addVehicle(v);
 				this.vehicles.push(v);
 				v.onVehicleAdd();
+				break;
 			}
 //		else
 //			delete v;
