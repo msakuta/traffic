@@ -329,12 +329,34 @@ function Graph(width, height){
 	this.rng = new Xor128(); // Create Random Number Generator
 	var rng = this.rng;
 	var n = 100;
+	var minDist = vertexRadius * 3; // Minimum distance between vertices, initialized by 3 times the radius of vertices.
 	this.vertices = new Array(n);
 	this.vehicles = [];
 	this.vehicleIdGen = 1;
 //	document.write(width + " " + height + ";");
-	for(var i = 0; i < n; i++)
-		this.vertices[i] = new GraphVertex(rng.next() * width, rng.next() * height);
+	for(var i = 0; i < n; i++){
+		var x, y;
+		
+		// Repeat generating random positions until a position that are not close to
+		// any of the vertices is obtained.
+		// Be careful not to set too high value for n which could consume room for a vertex,
+		// in which case an infinite loop could occur.
+		do{
+			x = rng.next() * width;
+			y = rng.next() * height;
+		} while(function(t){
+			for(var j = 0; j < i; j++){
+				var dx = t.vertices[j].x - x;
+				var dy = t.vertices[j].y - y;
+				if(dx * dx + dy * dy < minDist * minDist)
+					return true;
+			}
+			return false;
+		}(this));
+		
+		// Use the position to create a GraphVertex.
+		this.vertices[i] = new GraphVertex(x, y);
+	}
 	var m = n * 10;
 	for(var i = 0; i < m; i++){
 		var s = Math.floor(rng.next() * (n-1)), e = Math.floor(rng.next() * (n-1));
