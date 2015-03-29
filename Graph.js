@@ -35,7 +35,7 @@ GraphVertex.prototype.connect = function(other){
 		return false; // Already added
 
 	var length = this.measureDistance(other);
-	if(60.0 < length)
+	if(80.0 < length)
 		return false; // Avoid adding long edges
 	var e = new GraphEdge(this, other);
 	this.edges[other.id] = e;
@@ -390,7 +390,7 @@ function Graph(width, height){
 	this.rng = new Xor128(); // Create Random Number Generator
 	var rng = this.rng;
 	var n = 100;
-	var minDist = vertexRadius * 3; // Minimum distance between vertices, initialized by 3 times the radius of vertices.
+	var minDist = vertexRadius * 4; // Minimum distance between vertices, initialized by 3 times the radius of vertices.
 	this.vertices = new Array(n);
 	this.vehicles = [];
 	this.vehicleIdGen = 1;
