@@ -249,11 +249,12 @@ Vehicle.prototype.update = function(dt){
 	if(this.edge.length < this.pos){
 		this.pos -= this.edge.length;
 
+		var lastVertex = this.path.back();
 		// Count up passes for vertices
-		this.path.back().passVehicle(this);
+		lastVertex.passVehicle(this);
 
 		if(1 < this.path.length){
-			var lastVertex = this.path.pop();
+			this.path.pop();
 			this.edge.deleteVehicle(this);
 			this.edge = lastVertex.edges[this.path.back().id];
 			this.edge.addVehicle(this);
