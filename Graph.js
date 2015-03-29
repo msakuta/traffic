@@ -478,6 +478,7 @@ Graph.prototype.update = function(dt){
 			if(v.findPath(this, this.vertices[starti]) && !isCrowded(v)){
 				// Assign the id only if addition of the vehicle is succeeded.
 				v.id = this.vehicleIdGen++;
+				v.velocity = this.rng.next() * 10 + 10;
 				this.vertices[starti].addVehicle(v);
 				this.vehicles.push(v);
 				v.onVehicleAdd();
