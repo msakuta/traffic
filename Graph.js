@@ -28,9 +28,8 @@ GraphVertex.prototype.measureDistance = function(other){
 }
 
 GraphVertex.prototype.connect = function(other){
-//	EdgeMap::iterator it = edges.find(other);
-//	if(it != edges.end())
-//		return false; // Already added
+	if(other.id in this.edges || this.id in other.edges)
+		return false; // Already added
 
 	var length = this.measureDistance(other);
 	if(60.0 < length)
