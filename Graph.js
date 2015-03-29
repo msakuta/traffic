@@ -8,9 +8,12 @@ function GraphVertex(x,y){
 	this.edges = {}; // Edges are a map of destination id to GraphEdge object.
 	this.vehicles = [];
 	this.id = GraphVertex.prototype.idGen++;
+	this.passCount = 0;
 }
 
 GraphVertex.prototype.idGen = 0;
+
+GraphVertex.prototype.maxPassCount = 1; // Initialize with 0 for avoiding zero division
 
 GraphVertex.prototype.getPos = function(){
 	return new Array(this.x, this.y);
@@ -45,6 +48,15 @@ GraphVertex.prototype.addVehicle = function(v){
 		this.edges[path[path.length - 2].id].addVehicle(v);
 		path.pop();
 	}
+	this.passVehicle(v);
+}
+
+/// \brief Count up vehicle passes for GraphVertex
+/// \param v Ignored
+GraphVertex.prototype.passVehicle = function(v){
+	this.passCount++;
+	if(GraphVertex.prototype.maxPassCount < this.passCount)
+		GraphVertex.prototype.maxPassCount = this.passCount;
 }
 
 function GraphEdge(start, end){
@@ -197,6 +209,10 @@ Vehicle.prototype.update = function(dt){
 
 	if(this.edge.length < this.pos){
 		this.pos -= this.edge.length;
+
+		// Count up passes for vertices
+		this.path.back().passVehicle(this);
+
 		if(1 < this.path.length){
 			var lastVertex = this.path.pop();
 			this.edge.deleteVehicle(this);
@@ -204,8 +220,6 @@ Vehicle.prototype.update = function(dt){
 			this.edge.addVehicle(this);
 		}
 		else{
-//			edge->remove(this);
-//			delete this;
 			return false;
 		}
 	}

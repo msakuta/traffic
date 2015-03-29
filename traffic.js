@@ -29,7 +29,7 @@ function resetTrans(ctx){
 function draw() {
 	// A local function to convert a color channel intensity into hexadecimal notation
 	function numToHex(d){
-		var hex = Math.floor(d * 256).toString(16);
+		var hex = Math.floor(d * 255).toString(16);
 
 		while(hex.length < 2)
 			hex = "0" + hex;
@@ -93,7 +93,8 @@ function draw() {
 	for(var i = 0; i < graph.vertices.length; i++){
 		var v = graph.vertices[i];
 
-		ctx.fillStyle = "#777";
+		// Color the crossing with traffic intensity
+		ctx.fillStyle = roadColor(v.passCount / v.maxPassCount);
 		ctx.beginPath();
 		ctx.arc(v.x, v.y, vertexRadius, 0, Math.PI*2, false);
 		ctx.stroke();
