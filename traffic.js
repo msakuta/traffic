@@ -136,4 +136,36 @@ function draw() {
 
 	// Reset the transformation for the next drawing
 	ctx.setTransform(1,0,0,1,0,0);
+
+	// The third pass for graphs show the traffic signals.
+	// This is placed after vehicles rendering because the signals are more important
+	// and should not be obscured by vehicles.
+	ctx.strokeStyle = "#000";
+	for(var i = 0; i < graph.vertices.length; i++){
+		var v = graph.vertices[i];
+
+		if(v.countEdges() <= 2)
+			continue;
+
+		for(var j in v.edges){
+			var e = v.edges[j];
+			if(e === undefined)
+				continue;
+
+			var tpos = v.getPos();
+			var opos = graph.vertices[j].getPos();
+
+			// Obtain vector perpendicular to the edge's direction.
+			var para = new Array(2);
+			var perp = new Array(2);
+			var length = calcPerp(para, perp, tpos, opos);
+
+			ctx.fillStyle = v.signals[j] === true ? "#f00" : "#0f0";
+			ctx.beginPath();
+			ctx.arc(v.x + (para[0] - perp[0] * 0.5) * vertexRadius,
+				v.y + (para[1] - perp[1] * 0.5) * vertexRadius, 3, 0, Math.PI*2, false);
+			ctx.stroke();
+			ctx.fill();
+		}
+	}
 }

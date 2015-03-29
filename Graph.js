@@ -6,9 +6,12 @@ function GraphVertex(x,y){
 	this.y = y;
 //	document.write(this.x + " " + this.y + ";");
 	this.edges = {}; // Edges are a map of destination id to GraphEdge object.
+	this.signals = {};
 	this.vehicles = [];
 	this.id = GraphVertex.prototype.idGen++;
 	this.passCount = 0;
+	this.signalInterval = 5;
+	this.signalRemaining = 5;
 }
 
 GraphVertex.prototype.idGen = 0;
@@ -37,7 +40,22 @@ GraphVertex.prototype.connect = function(other){
 	var e = new GraphEdge(this, other);
 	this.edges[other.id] = e;
 	other.edges[this.id] = e;
+
+	// This silly logic for initial values of the signals could be improved
+	this.signals[other.id] = this.countEdges() % 2 < 1;
+	other.signals[this.id] = other.countEdges() % 2 < 1;
+
 	return true;
+}
+
+/// \brief Returns count of edges this vertex has.
+///
+/// This should really be more efficient implementation.
+GraphVertex.prototype.countEdges = function(){
+	var ret = 0;
+	for(var e in this.edges)
+		ret++;
+	return ret;
 }
 
 /// \param v Vehicle to add
@@ -48,6 +66,19 @@ GraphVertex.prototype.addVehicle = function(v){
 		path.pop();
 	}
 	this.passVehicle(v);
+}
+
+/// \brief Called every frame
+GraphVertex.prototype.update = function(dt){
+	// Alternate signals
+	if(this.signalRemaining < dt){
+		for(var i in this.signals){
+			this.signals[i] = !this.signals[i];
+		}
+		this.signalRemaining = this.signalInterval;
+	}
+	else
+		this.signalRemaining -= dt;
 }
 
 /// \brief Count up vehicle passes for GraphVertex
@@ -188,6 +219,15 @@ Vehicle.prototype.update = function(dt){
 
 	// Check collision with other vehicles
 	do{
+		// Check if traffic signal is red
+		var headPos = this.pos + Vehicle.prototype.vehicleInterval * 0.5;
+		if(headPos < this.edge.length - vertexRadius && this.edge.length - vertexRadius < headPos + this.velocity * dt){
+			var lastVertex = this.path.back();
+			if(2 < lastVertex.countEdges() && lastVertex.signals[this.edge.start === lastVertex ? this.edge.end.id : this.edge.start.id]){
+				break;
+			}
+		}
+
 		if(this.checkTraffic(this.edge, this.pos)){
 			this.jammed = true;
 			break;
@@ -373,9 +413,13 @@ function Graph(width, height){
 			}
 			return false;
 		}(this));
-		
+
 		// Use the position to create a GraphVertex.
 		this.vertices[i] = new GraphVertex(x, y);
+
+		// Randomize interval of traffic signals to make the simulation feel a bit more realistic.
+		this.vertices[i].signalRemaining =
+		this.vertices[i].signalInterval = rng.next() * 5 + 5;
 	}
 	for(var i = 0; i < n; i++){
 		// If average number of edges a vertex has is 2, most vertices connect to far ones,
@@ -441,6 +485,10 @@ Graph.prototype.update = function(dt){
 //		else
 //			delete v;
 		}
+	}
+
+	for(var i = 0; i < this.vertices.length; i++){
+		this.vertices[i].update(dt);
 	}
 
 	for(var i = 0; i < this.vehicles.length;){
