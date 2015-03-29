@@ -129,7 +129,8 @@ function draw() {
 		ctx.moveTo(-6, -3);
 		ctx.lineTo(-6,  3);
 		ctx.lineTo( 6,  4);
-		ctx.lineTo( 6, -4);		
+		ctx.lineTo( 6, -4);
+		ctx.closePath();
 		ctx.fill();
 		ctx.stroke();
 	}
