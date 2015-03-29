@@ -127,7 +127,9 @@ function Vehicle(dest){
 	this.edge = null;
 	this.path = new Array();
 	this.pos = 0;
-	this.velocity = 10;
+	this.velocity = 0;
+	this.maxVelocity = 10;
+	this.acceleration = 3;
 	this.color = new Array(3);
 	this.jammed = false;
 	for(var i = 0; i < 3; i++)
@@ -225,11 +227,13 @@ Vehicle.prototype.update = function(dt){
 		if(headPos < this.edge.length - vertexRadius && this.edge.length - vertexRadius < headPos + this.velocity * dt){
 			var lastVertex = this.path.back();
 			if(2 < lastVertex.countEdges() && lastVertex.signals[this.edge.start.id]){
+				this.velocity = 0;
 				break;
 			}
 		}
 
 		if(this.checkTraffic(this.edge, this.pos)){
+			this.velocity = 0;
 			this.jammed = true;
 			break;
 		}
@@ -241,10 +245,12 @@ Vehicle.prototype.update = function(dt){
 			var edge = edges[next.id];
 //			assert(it != edges.end());
 			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length)){
+				this.velocity = 0;
 				this.jammed = true;
 				break;
 			}
 		}
+		this.velocity = Math.min(this.maxVelocity, this.velocity + this.acceleration * dt);
 		this.pos += this.velocity * dt;
 		this.jammed = false;
 	} while(0);
@@ -469,7 +475,8 @@ Graph.prototype.update = function(dt){
 			if(v.findPath(this, this.vertices[starti]) && !isCrowded(v)){
 				// Assign the id only if addition of the vehicle is succeeded.
 				v.id = this.vehicleIdGen++;
-				v.velocity = this.rng.next() * 10 + 10;
+				v.maxVelocity = this.rng.next() * 10 + 10;
+				v.acceleration = this.rng.next() * 3 + 6;
 				this.vertices[starti].addVehicle(v);
 				this.vehicles.push(v);
 				v.onVehicleAdd();
