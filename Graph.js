@@ -55,10 +55,15 @@ function GraphEdge(start, end){
 	this.vehicles = [];
 }
 
+GraphEdge.prototype.maxPassCount = 1; // Initialize with 0 for avoiding zero division
+
 /// \param v Vehicle to add
 GraphEdge.prototype.addVehicle = function(v){
 	v.edge = this;
 	this.vehicles.push(v);
+	this.passCount++;
+	if(GraphEdge.prototype.maxPassCount < this.passCount)
+		GraphEdge.prototype.maxPassCount = this.passCount;
 }
 
 GraphEdge.prototype.deleteVehicle = function(v){

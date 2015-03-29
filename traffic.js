@@ -27,6 +27,21 @@ function resetTrans(ctx){
 }
 
 function draw() {
+	// A local function to convert a color channel intensity into hexadecimal notation
+	function numToHex(d){
+		var hex = Math.floor(d * 256).toString(16);
+
+		while(hex.length < 2)
+			hex = "0" + hex;
+
+		return hex;
+	}
+
+	// A local function to determine road color for showing traffic intensity.
+	function roadColor(f){
+		return "#" + numToHex((1. + f) / 2.) + "7f7f";
+	}
+
 	graph.update(0.1);
 
 	var ctx = canvas.getContext('2d');
@@ -38,7 +53,6 @@ function draw() {
 
 	// The first pass of GraphEdge traversal draws asphalt-colored, road-like graphics.
 	ctx.strokeStyle = "#000";
-	ctx.fillStyle = "#777";
 	ctx.setTransform(1,0,0,1,0,0);
 	for(var i = 0; i < graph.vertices.length; i++){
 		var v = graph.vertices[i];
@@ -49,6 +63,9 @@ function draw() {
 				continue;
 
 			var dpos = e.start.getPos();
+
+			// Color the road with traffic intensity
+			ctx.fillStyle = roadColor(e.passCount / e.maxPassCount);
 
 			// Obtain vector perpendicular to the edge's direction.
 			var para = new Array(2);
@@ -84,16 +101,6 @@ function draw() {
 
 		ctx.fillStyle = "#000";
 		ctx.fillText(v.id, v.x, v.y);
-	}
-
-	// A local function to convert a color channel intensity into hexadecimal notation
-	var numToHex = function (d){
-		var hex = Math.floor(d * 256).toString(16);
-
-		while(hex.length < 2)
-			hex = "0" + hex;
-
-		return hex;
 	}
 
 	ctx.font = "bold 12px Helvetica";
