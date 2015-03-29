@@ -194,6 +194,7 @@ Vehicle.prototype.update = function(dt){
 		this.pos -= this.edge.length;
 		if(1 < this.path.length){
 			var lastVertex = this.path.pop();
+			this.edge.deleteVehicle(this);
 			this.edge = lastVertex.edges[this.path.back().id];
 			this.edge.addVehicle(this);
 		}
