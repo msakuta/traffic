@@ -233,9 +233,11 @@ Vehicle.prototype.update = function(dt){
 			this.jammed = true;
 			break;
 		}
-		if(this.edge.length < this.pos + this.velocity * dt && 1 < this.path.length){
+
+		// If this Vehicle is partially entering the next GraphEdge, check on that edge, too.
+		if(this.edge.length < this.pos + this.vehicleInterval + this.velocity * dt && 1 < this.path.length){
 			var edges = this.path.back().edges;
-			var next = this.path.back();
+			var next = this.path[this.path.length-2];
 			var edge = edges[next.id];
 //			assert(it != edges.end());
 			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length)){
