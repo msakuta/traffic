@@ -267,8 +267,9 @@ Vehicle.prototype.calcPos = function(pSpos, pEpos){
 	return pos;
 }
 
+Vehicle.prototype.vehicleInterval = 15;
+
 Vehicle.prototype.checkTraffic = function(edge, pos){
-	var vehicleInterval = 15;
 	var vehicles = edge.vehicles;
 	var jammed = false;
 	for(var i = 0; i < vehicles.length; i++){
@@ -283,12 +284,12 @@ Vehicle.prototype.checkTraffic = function(edge, pos){
 		if(v.path.back() !== this.path.back())
 			continue;
 		if(0 < this.velocity){
-			if(pos < v.pos && v.pos < pos + vehicleInterval){
+			if(pos < v.pos && v.pos < pos + this.vehicleInterval){
 				jammed = true;
 				break;
 			}
 		}
-		else if(pos - vehicleInterval < v.pos && v.pos < pos){
+		else if(pos - this.vehicleInterval < v.pos && v.pos < pos){
 			jammed = true;
 			break;
 		}
@@ -384,12 +385,34 @@ Graph.prototype.update = function(dt){
 	// Number of vehicles generated in a frame distributes in Poisson distribution.
 	var numVehicles = poissonRandom(this.rng, 0.5);
 
+	// A local function to find if the given vehicle's starting point is too crowded to start the vehicle.
+	function isCrowded(v){
+		// Get the first edge this vehicle is going to pass.
+		var path = v.path;
+		var lastVertex = path.back();
+		if(lastVertex === undefined)
+			return false;
+		var beforeLastVertex = path[path.length-2];
+		if(beforeLastVertex === undefined)
+			return false;
+		var edge = lastVertex.edges[beforeLastVertex.id];
+		if(edge === undefined)
+			return false;
+
+		// If this edge has too many vehicles that another vehicle has no room to enter,
+		// give up creating the vehicle.
+		// This would prevent number of vehicles from increasing forever even if
+		// the road network is complex.
+		return edge.length / Vehicle.prototype.vehicleInterval <= edge.vehicles.length;
+	}
+
 	for(var n = 0; n < numVehicles; n++){
 		for(var i = 0; i < 100; i++){
 			var starti = Math.floor(this.rng.next() * (this.vertices.length-1));
 			var endi = Math.floor(this.rng.next() * (this.vertices.length-1));
 			var v = new Vehicle(this.vertices[endi]);
-			if(v.findPath(this, this.vertices[starti])){
+
+			if(v.findPath(this, this.vertices[starti]) && !isCrowded(v)){
 				// Assign the id only if addition of the vehicle is succeeded.
 				v.id = this.vehicleIdGen++;
 				this.vertices[starti].addVehicle(v);
