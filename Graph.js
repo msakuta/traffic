@@ -39,6 +39,7 @@ GraphVertex.prototype.connect = function(other){
 		return false; // Avoid adding long edges
 	var e = new GraphEdge(this, other);
 	this.edges[other.id] = e;
+	e = new GraphEdge(other, this);
 	other.edges[this.id] = e;
 
 	// This silly logic for initial values of the signals could be improved
@@ -223,7 +224,7 @@ Vehicle.prototype.update = function(dt){
 		var headPos = this.pos + Vehicle.prototype.vehicleInterval * 0.5;
 		if(headPos < this.edge.length - vertexRadius && this.edge.length - vertexRadius < headPos + this.velocity * dt){
 			var lastVertex = this.path.back();
-			if(2 < lastVertex.countEdges() && lastVertex.signals[this.edge.start === lastVertex ? this.edge.end.id : this.edge.start.id]){
+			if(2 < lastVertex.countEdges() && lastVertex.signals[this.edge.start.id]){
 				break;
 			}
 		}
@@ -298,16 +299,8 @@ function calcPerp(para, perp, pos, dpos){
 /// that we want separate function to do.  So this function can do both tasks at once.
 Vehicle.prototype.calcPos = function(pSpos, pEpos){
 	var v = this;
-	var spos = null;
-	var epos = null;
-	if(v.path.back() == v.edge.start){
-		spos = v.edge.end.getPos();
-		epos = v.edge.start.getPos();
-	}
-	else{
-		spos = v.edge.start.getPos();
-		epos = v.edge.end.getPos();
-	}
+	var spos = v.edge.start.getPos();
+	var epos = v.edge.end.getPos();
 	var pos = new Array(2);
 
 	var perp = new Array(2);
@@ -340,15 +333,11 @@ Vehicle.prototype.checkTraffic = function(edge, pos){
 		// positive side, so we must look the path to find the actual direction on the edge.
 //		if(v.velocity * this.velocity < 0)
 //			continue;
-		if(v.path.back() !== this.path.back())
-			continue;
-		if(0 < this.velocity){
-			if(pos < v.pos && v.pos < pos + this.vehicleInterval){
-				jammed = true;
-				break;
-			}
-		}
-		else if(pos - this.vehicleInterval < v.pos && v.pos < pos){
+		// Now that GraphEdge objects are created for each direction, we do not need to check
+		// the direction (it's always the right direction, in sacrifice of memory).
+//		if(v.path.back() !== this.path.back())
+//			continue;
+		if(pos < v.pos && v.pos < pos + this.vehicleInterval){
 			jammed = true;
 			break;
 		}

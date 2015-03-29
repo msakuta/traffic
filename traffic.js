@@ -62,7 +62,7 @@ function draw() {
 			if(e === undefined)
 				continue;
 
-			var dpos = e.start.getPos();
+			var dpos = e.end.getPos();
 
 			// Color the road with traffic intensity
 			ctx.fillStyle = roadColor(e.passCount / e.maxPassCount);
@@ -70,13 +70,13 @@ function draw() {
 			// Obtain vector perpendicular to the edge's direction.
 			var para = new Array(2);
 			var perp = new Array(2);
-			var length = calcPerp(para, perp, e.end.getPos(), dpos);
+			var length = calcPerp(para, perp, pos, dpos);
 
 			var size = vertexRadius;
 
 			ctx.beginPath();
-			ctx.moveTo(pos[0] - perp[0] * size, pos[1]- perp[1] * size);
-			ctx.lineTo(dpos[0] - perp[0] * size, dpos[1] - perp[1] * size);
+			ctx.moveTo(pos[0], pos[1]);
+			ctx.lineTo(dpos[0], dpos[1]);
 			ctx.lineTo(dpos[0] + perp[0] * size, dpos[1] + perp[1] * size);
 			ctx.lineTo(pos[0] + perp[0] * size, pos[1] + perp[1] * size);
 			ctx.stroke();
