@@ -230,7 +230,7 @@ function calcPerp(para, perp, pos, dpos){
 /// \param pSpos An array object for receiving starting position of the GraphEdge this Vehicle is on.
 ///              Can be undefined to ignore the result.
 ///              This parameter has a 'p' prefix to imply it's used like a pointer in C.
-/// \param pEpos An array object for receiving starting position of the GraphEdge this Vehicle is on.
+/// \param pEpos An array object for receiving ending position of the GraphEdge this Vehicle is on.
 ///              Can be undefined to ignore the result.
 ///
 /// This function's main purpose is to calculate the world coordinates to display this Vehicle,
