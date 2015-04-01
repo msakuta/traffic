@@ -244,7 +244,7 @@ Vehicle.prototype.update = function(dt){
 			var next = this.path[this.path.length-2];
 			var edge = edges[next.id];
 //			assert(it != edges.end());
-			if(edge !== undefined && this.checkTraffic(edge, this.pos - edge.length)){
+			if(edge !== undefined && this.checkTraffic(edge, this.pos - this.edge.length)){
 				this.velocity = 0;
 				this.jammed = true;
 				break;
