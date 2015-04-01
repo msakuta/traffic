@@ -222,9 +222,11 @@ Vehicle.prototype.update = function(dt){
 
 	// Check collision with other vehicles
 	do{
+		var nextVelocity = Math.min(this.maxVelocity, this.velocity + this.acceleration * dt);
+
 		// Check if traffic signal is red
 		var headPos = this.pos + Vehicle.prototype.vehicleInterval * 0.5;
-		if(headPos < this.edge.length - vertexRadius && this.edge.length - vertexRadius < headPos + this.velocity * dt){
+		if(headPos < this.edge.length - vertexRadius && this.edge.length - vertexRadius < headPos + nextVelocity * dt){
 			var lastVertex = this.path.back();
 			if(2 < lastVertex.countEdges() && lastVertex.signals[this.edge.start.id]){
 				this.velocity = 0;
@@ -239,7 +241,7 @@ Vehicle.prototype.update = function(dt){
 		}
 
 		// If this Vehicle is partially entering the next GraphEdge, check on that edge, too.
-		if(this.edge.length < this.pos + this.vehicleInterval + this.velocity * dt && 1 < this.path.length){
+		if(this.edge.length < this.pos + this.vehicleInterval + nextVelocity * dt && 1 < this.path.length){
 			var edges = this.path.back().edges;
 			var next = this.path[this.path.length-2];
 			var edge = edges[next.id];
@@ -250,7 +252,7 @@ Vehicle.prototype.update = function(dt){
 				break;
 			}
 		}
-		this.velocity = Math.min(this.maxVelocity, this.velocity + this.acceleration * dt);
+		this.velocity = nextVelocity;
 		this.pos += this.velocity * dt;
 		this.jammed = false;
 	} while(0);
