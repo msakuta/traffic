@@ -393,7 +393,8 @@ function Graph(width, height){
 	this.vertices = new Array(n);
 	this.vehicles = [];
 	this.vehicleIdGen = 1;
-//	document.write(width + " " + height + ";");
+	this.vehicleFreq = 0.5;
+
 	for(var i = 0; i < n; i++){
 		var x, y;
 		
@@ -445,7 +446,7 @@ Graph.prototype.update = function(dt){
 	var global_time = Graph.prototype.global_time;
 
 	// Number of vehicles generated in a frame distributes in Poisson distribution.
-	var numVehicles = poissonRandom(this.rng, 0.5);
+	var numVehicles = poissonRandom(this.rng, this.vehicleFreq);
 
 	// A local function to find if the given vehicle's starting point is too crowded to start the vehicle.
 	function isCrowded(v){

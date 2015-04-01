@@ -9,10 +9,13 @@
 		<h1>Traffic Jam Simulator with JavaScript</h1>
 	</div>
 	<canvas id="scratch" width="600px" height="600px" style="width: 600px; height: 600px;"></canvas>
-	<div id="timeText"/>
 	<script type="text/javascript" src="xorshift.js"></script>
 	<script type="text/javascript" src="Graph.js"></script>
 	<script type="text/javascript" src="traffic.js"></script>
-	</script>
+	<p>
+		Car generation frequency (cars per frame): <span id="freq"></span>
+		<input type="edit" id="freqEdit"></input>
+		<input type="button" onclick="submitFreq()" value="set"></input>
+	</p>
 </body>
 </html>

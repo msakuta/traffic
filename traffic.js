@@ -14,6 +14,11 @@ window.onload = function() {
 	height = parseInt(canvas.style.height);
 	graph = new Graph(width, height);
 
+	var edit = document.getElementById("freqEdit");
+	if(edit !== undefined)
+		edit.value = graph.vehicleFreq;
+	updateFreq();
+
 	var loop = function() {
 		draw();
 		var timer = setTimeout(loop,100);
@@ -24,6 +29,22 @@ window.onload = function() {
 
 function resetTrans(ctx){
 	ctx.setTransform(1,0,0,1,200,200);
+}
+
+function updateFreq(){
+	var text = document.getElementById("freq");
+	text.innerHTML = graph.vehicleFreq;
+}
+
+function submitFreq(){
+	var edit = document.getElementById("freqEdit");
+	if(edit === undefined)
+		return;
+	var val = parseFloat(edit.value);
+	if(isNaN(val))
+		return;
+	graph.vehicleFreq = val;
+	updateFreq();
 }
 
 function draw() {
