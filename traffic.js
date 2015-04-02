@@ -5,6 +5,30 @@ var height;
 
 var graph;
 
+var magnification = 1.;
+var mouseCenter = [0,0];
+var trans = [1,0,0,1,0,0];
+
+/// \brief Calculates product of matrices
+///
+/// Note that this function assumes arguments augmented matrices, see http://en.wikipedia.org/wiki/Augmented_matrix
+/// The least significant suffix is rows.
+/// To put it simply, array of coefficients as the same order as parameters to canvas.setTransform().
+function matmp(a,b){
+	var ret = new Array(6);
+	for(var i = 0; i < 3; i++){
+		for(var j = 0; j < 2; j++){
+			var val = 0;
+			for(var k = 0; k < 2; k++)
+				val += a[k * 2 + j] * b[i * 2 + k];
+			if(i === 2)
+				val += a[2 * 2 + j];
+			ret[i * 2 + j] = val;
+		}
+	}
+	return ret;
+}
+
 window.onload = function() {
 	canvas = document.getElementById("scratch");
 	if ( ! canvas || ! canvas.getContext ) {
@@ -18,6 +42,72 @@ window.onload = function() {
 	if(edit !== undefined)
 		edit.value = graph.vehicleFreq;
 	updateFreq();
+
+	var zoomElement = document.getElementById("zoom");
+	var transElement = document.getElementById("trans");
+
+	function magnify(f){
+		// Prepare the transformation matrix for zooming
+		trans = matmp([f, 0, 0, f, (1 - f) * mouseCenter[0], (1 - f) * mouseCenter[1]], trans);
+
+		var result = magnification * f;
+		if(result < 1){
+			// When fully zoomed out, reset the matrix to identity.
+			magnification = 1.;
+			trans = [1, 0, 0, 1, 0, 0];
+		}
+		else
+			magnification = result;
+		zoomElement.innerHTML = magnification.toString();
+		transElement.innerHTML = trans.toString();
+	}
+
+	// For Google Chrome
+	function MouseWheelListenerFunc(e){
+		magnify(0 < e.wheelDelta ? 1.2 : 1. / 1.2);
+
+		// Cancel scrolling by the mouse wheel
+		e.preventDefault();
+	}
+
+	// For FireFox
+	function MouseScrollFunc(e){
+		magnify(e.detail < 0 ? 1.2 : 1. / 1.2);
+
+		// Cancel scrolling by the mouse wheel
+		e.preventDefault();
+	}
+
+	if(canvas.addEventListener){
+		canvas.addEventListener("mousewheel" , MouseWheelListenerFunc);
+		canvas.addEventListener("DOMMouseScroll" , MouseScrollFunc);
+	}
+
+	// It's tricky to obtain client coordinates of a HTML element.
+	function getOffsetRect(elem){
+		var box = elem.getBoundingClientRect();
+		var body = document.body;
+		var docElem = document.documentElement;
+ 
+		var clientTop = docElem.clientTop || body.clientTop || 0
+		var clientLeft = docElem.clientLeft || body.clientLeft || 0
+
+		var top  = box.top - clientTop
+		var left = box.left - clientLeft
+
+		return { top: Math.round(top), left: Math.round(left) }
+	}
+
+	canvas.onmousemove = function (e){
+
+		// For older InternetExplorerS
+		if (!e)	e = window.event;
+
+		var r = getOffsetRect(canvas);
+
+		mouseCenter[0] = e.clientX - r.left;
+		mouseCenter[1] = e.clientY - r.top;
+	};
 
 	var loop = function() {
 		draw();
@@ -68,13 +158,17 @@ function draw() {
 	var ctx = canvas.getContext('2d');
 	ctx.clearRect(0,0,width,height);
 
+	function transform(){
+		ctx.setTransform(trans[0], trans[1], trans[2], trans[3], trans[4], trans[5]);
+	}
+
 	ctx.font = "bold 16px Helvetica";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 
 	// The first pass of GraphEdge traversal draws asphalt-colored, road-like graphics.
 	ctx.strokeStyle = "#000";
-	ctx.setTransform(1,0,0,1,0,0);
+	transform();
 	for(var i = 0; i < graph.vertices.length; i++){
 		var v = graph.vertices[i];
 		var pos = v.getPos();
@@ -139,7 +233,7 @@ function draw() {
 		ctx.fillStyle = "#" + numToHex(v.color[0]) + numToHex(v.color[1]) + numToHex(v.color[2]);
 
 		// Reset the transformation to identity
-		ctx.setTransform(1,0,0,1,0,0);
+		transform();
 
 		// Construct transformation matrix
 		ctx.translate(pos[0], pos[1]);
@@ -157,7 +251,7 @@ function draw() {
 	}
 
 	// Reset the transformation for the next drawing
-	ctx.setTransform(1,0,0,1,0,0);
+	transform();
 
 	// The third pass for graphs show the traffic signals.
 	// This is placed after vehicles rendering because the signals are more important
