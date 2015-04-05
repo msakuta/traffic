@@ -7,6 +7,8 @@ var graph;
 
 var magnification = 1.;
 var mouseCenter = [0,0];
+var lastMouseCenter = [0,0];
+var mouseDragging = false;
 var trans = [1,0,0,1,0,0];
 
 /// \brief Calculates product of matrices
@@ -45,6 +47,7 @@ window.onload = function() {
 
 	var zoomElement = document.getElementById("zoom");
 	var transElement = document.getElementById("trans");
+	var mouseElement = document.getElementById("mouse");
 
 	function magnify(f){
 		// Prepare the transformation matrix for zooming
@@ -107,6 +110,34 @@ window.onload = function() {
 
 		mouseCenter[0] = e.clientX - r.left;
 		mouseCenter[1] = e.clientY - r.top;
+
+		if(mouseDragging){
+			var nextx = trans[4] + mouseCenter[0] - lastMouseCenter[0];
+			var nexty = trans[5] + mouseCenter[1] - lastMouseCenter[1];
+			if(0 <= -nextx && -nextx < width * (trans[0] - 1))
+				trans[4] += mouseCenter[0] - lastMouseCenter[0];
+			if(0 <= -nexty && -nexty < height * (trans[3] - 1))
+				trans[5] += mouseCenter[1] - lastMouseCenter[1];
+
+			lastMouseCenter[0] = mouseCenter[0];
+			lastMouseCenter[1] = mouseCenter[1];
+		}
+		e.preventDefault();
+	};
+
+	canvas.onmousedown = function(e){
+		mouseDragging = true;
+		mouseElement.innerHTML = "true";
+
+		var r = getOffsetRect(canvas);
+
+		lastMouseCenter[0] = e.clientX - r.left;
+		lastMouseCenter[1] = e.clientY - r.top;
+	};
+
+	canvas.onmouseup = function(e){
+		mouseDragging = false;
+		mouseElement.innerHTML = "false";
 	};
 
 	var loop = function() {
