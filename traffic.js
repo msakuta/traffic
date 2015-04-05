@@ -11,6 +11,25 @@ var lastMouseCenter = [0,0];
 var mouseDragging = false;
 var trans = [1,0,0,1,0,0];
 
+var drawCountElement = null;
+var drawCounts = {};
+
+/// Vector 2D addition
+function vecadd(v1,v2){
+	return [v1[0] + v2[0], v1[1] + v2[1]];
+}
+
+/// Vector 2D scale
+function vecscale(v1,s2){
+	return [v1[0] * s2, v1[1] * s2];
+}
+
+/// Vector 2D distance
+function vecdist(v1,v2){
+	var dx = v1[0] - v2[0], dy = v1[1] - v2[1];
+	return Math.sqrt(dx * dx + dy * dy);
+}
+
 /// \brief Calculates product of matrices
 ///
 /// Note that this function assumes arguments augmented matrices, see http://en.wikipedia.org/wiki/Augmented_matrix
@@ -48,6 +67,7 @@ window.onload = function() {
 	var zoomElement = document.getElementById("zoom");
 	var transElement = document.getElementById("trans");
 	var mouseElement = document.getElementById("mouse");
+	drawCountElement = document.getElementById("drawcount");
 
 	function magnify(f){
 		// Prepare the transformation matrix for zooming
@@ -187,11 +207,21 @@ function draw() {
 	graph.update(0.1);
 
 	var ctx = canvas.getContext('2d');
+	ctx.setTransform(1,0,0,1,0,0);
 	ctx.clearRect(0,0,width,height);
 
 	function transform(){
 		ctx.setTransform(trans[0], trans[1], trans[2], trans[3], trans[4], trans[5]);
 	}
+
+	function hitCheck(pos,radius){
+		var x = trans[0] * pos[0] + trans[4];
+		var y = trans[3] * pos[1] + trans[5];
+		var tr = radius * trans[0]; // Transformed Radius
+		return 0 <= x + tr && x - tr < width && 0 <= y + tr && y - tr < height;
+	}
+
+	drawCounts.edge = drawCounts.vertex = drawCounts.vehicle = drawCounts.signal = 0;
 
 	ctx.font = "bold 16px Helvetica";
 	ctx.textAlign = "center";
@@ -209,6 +239,11 @@ function draw() {
 				continue;
 
 			var dpos = e.end.getPos();
+
+			if(!hitCheck(vecscale(vecadd(pos, dpos), 0.5), vecdist(pos, dpos) / 2. + vertexRadius))
+				continue;
+
+			drawCounts.edge++;
 
 			// Color the road with traffic intensity
 			ctx.fillStyle = roadColor(e.passCount / e.maxPassCount);
@@ -239,6 +274,11 @@ function draw() {
 	for(var i = 0; i < graph.vertices.length; i++){
 		var v = graph.vertices[i];
 
+		if(!hitCheck(v.getPos(), vertexRadius * trans[0]))
+			continue;
+
+		drawCounts.vertex++;
+
 		// Color the crossing with traffic intensity
 		ctx.fillStyle = roadColor(v.passCount / v.maxPassCount);
 		ctx.beginPath();
@@ -257,6 +297,11 @@ function draw() {
 		var spos = new Array(2);
 		var epos = new Array(2);
 		var pos = v.calcPos(spos, epos);
+
+		if(!hitCheck(pos, 7 * trans[0]))
+			continue;
+
+		drawCounts.vehicle++;
 
 		var angle = Math.atan2((spos[1] - epos[1]), spos[0] - epos[0]);
 
@@ -306,13 +351,22 @@ function draw() {
 			var para = new Array(2);
 			var perp = new Array(2);
 			var length = calcPerp(para, perp, tpos, opos);
+			var x = v.x + (para[0] - perp[0] * 0.5) * vertexRadius;
+			var y = v.y + (para[1] - perp[1] * 0.5) * vertexRadius;
+
+			if(!hitCheck([x, y], 3))
+				continue;
+
+			drawCounts.signal++;
 
 			ctx.fillStyle = v.signals[j] === true ? "#f00" : "#0f0";
 			ctx.beginPath();
-			ctx.arc(v.x + (para[0] - perp[0] * 0.5) * vertexRadius,
-				v.y + (para[1] - perp[1] * 0.5) * vertexRadius, 3, 0, Math.PI*2, false);
+			ctx.arc(x, y, 3, 0, Math.PI*2, false);
 			ctx.stroke();
 			ctx.fill();
 		}
 	}
+
+	drawCountElement.innerHTML = "Edges:" + drawCounts.edge + ", Vertices: " + drawCounts.vertex
+		+ ", Vehicles: " + drawCounts.vehicle + ", Signals: " + drawCounts.signal;
 }
