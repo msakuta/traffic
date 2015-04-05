@@ -12,7 +12,6 @@ var mouseDragging = false;
 var trans = [1,0,0,1,0,0];
 
 var drawCountElement = null;
-var drawCounts = {};
 
 /// Vector 2D addition
 function vecadd(v1,v2){
@@ -221,7 +220,11 @@ function draw() {
 		return 0 <= x + tr && x - tr < width && 0 <= y + tr && y - tr < height;
 	}
 
-	drawCounts.edge = drawCounts.vertex = drawCounts.vehicle = drawCounts.signal = 0;
+	var drawCounts = {}, totalCounts = {};
+	for(var i = 0; i < 2; i++){
+		var counts = [drawCounts, totalCounts][i];
+		counts.edge = counts.vertex = counts.vehicle = counts.signal = 0;
+	}
 
 	ctx.font = "bold 16px Helvetica";
 	ctx.textAlign = "center";
@@ -237,6 +240,8 @@ function draw() {
 			var e = v.edges[j];
 			if(e === undefined)
 				continue;
+
+			totalCounts.edge++;
 
 			var dpos = e.end.getPos();
 
@@ -274,6 +279,8 @@ function draw() {
 	for(var i = 0; i < graph.vertices.length; i++){
 		var v = graph.vertices[i];
 
+		totalCounts.vertex++;
+
 		if(!hitCheck(v.getPos(), vertexRadius * trans[0]))
 			continue;
 
@@ -297,6 +304,8 @@ function draw() {
 		var spos = new Array(2);
 		var epos = new Array(2);
 		var pos = v.calcPos(spos, epos);
+
+		totalCounts.vehicle++;
 
 		if(!hitCheck(pos, 7 * trans[0]))
 			continue;
@@ -354,6 +363,8 @@ function draw() {
 			var x = v.x + (para[0] - perp[0] * 0.5) * vertexRadius;
 			var y = v.y + (para[1] - perp[1] * 0.5) * vertexRadius;
 
+			totalCounts.signal++;
+
 			if(!hitCheck([x, y], 3))
 				continue;
 
@@ -367,6 +378,8 @@ function draw() {
 		}
 	}
 
-	drawCountElement.innerHTML = "Edges:" + drawCounts.edge + ", Vertices: " + drawCounts.vertex
-		+ ", Vehicles: " + drawCounts.vehicle + ", Signals: " + drawCounts.signal;
+	drawCountElement.innerHTML = "Edges: " + drawCounts.edge + " / " + totalCounts.edge
+		+ ", Vertices: " + drawCounts.vertex + " / " + totalCounts.vertex
+		+ ", Vehicles: " + drawCounts.vehicle + " / " + totalCounts.vehicle
+		+ ", Signals: " + drawCounts.signal + " / " + totalCounts.signal;
 }
