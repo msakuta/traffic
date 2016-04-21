@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Train Blocks Simulator with JavaScript</title>
+	<meta charset="UTF-8" />
+</head>
+<body>
+	<div id="header">
+		<h1>Train Blocks Simulator with JavaScript</h1>
+	</div>
+	<canvas id="scratch" width="600px" height="600px" style="width: 600px; height: 600px;">
+		<font size="+3" color="#ff0000">I'm sorry, but your browser seems not supporting HTML5 canvas. Try getting a modern browser and come again!</font>
+	</canvas>
+	<script type="text/javascript" src="xorshift.js"></script>
+	<script type="text/javascript" src="rails.js"></script>
+	<p>
+		Car generation frequency (cars per frame): <span id="freq"></span>
+		<input type="edit" id="freqEdit"></input>
+		<input type="button" onclick="submitFreq()" value="set"></input>
+	</p>
+	<h2>Controls</h2>
+	<p>Mouse wheel over the canvas to zoom</p>
+	<p>Mouse drag over the canvas to pan when zoomed</p>
+	<h2>Debug outputs</h2>
+	<p>Zoom: <span id="zoom"></span></p>
+	<p>Transform: <span id="trans"></span></p>
+	<p>Mouse: <span id="mouse"></span></p>
+	<p>Draw Count: <span id="drawcount"></span></p>
+</body>
+</html>
